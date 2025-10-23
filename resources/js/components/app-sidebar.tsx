@@ -13,7 +13,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { LayoutGrid, Ticket, History } from 'lucide-react';
+import { LayoutGrid, Ticket, History, PlusCircle } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -21,6 +21,11 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'New Ticket',
+        href: '/tickets/create',
+        icon: PlusCircle,
     },
     {
         title: 'Active Tickets',
