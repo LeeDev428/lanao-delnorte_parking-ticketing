@@ -1,0 +1,220 @@
+import AdminLayout from '@/layouts/admin/admin-layout';
+import { Head } from '@inertiajs/react';
+import {
+    TrendingUp,
+    Ticket,
+    DollarSign,
+    Users,
+    Clock,
+    CheckCircle,
+    XCircle,
+} from 'lucide-react';
+
+interface DashboardStats {
+    todayTickets: number;
+    totalRevenue: number;
+    activeTickets: number;
+    availableSlots: number;
+    totalSlots: number;
+    todayRevenue: number;
+    paidTickets: number;
+    cancelledTickets: number;
+}
+
+interface DashboardProps {
+    stats: DashboardStats;
+}
+
+export default function Dashboard({ stats }: DashboardProps) {
+    return (
+        <AdminLayout title="Dashboard">
+            <Head title="Admin Dashboard" />
+
+            <div className="space-y-6">
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <StatCard
+                        title="Today's Tickets"
+                        value={stats?.todayTickets || 124}
+                        icon={<Ticket className="h-6 w-6" />}
+                        color="blue"
+                        trend="+12%"
+                    />
+                    <StatCard
+                        title="Total Revenue"
+                        value={`₱ ${stats?.todayRevenue || 940}`}
+                        icon={<DollarSign className="h-6 w-6" />}
+                        color="green"
+                        trend="+8%"
+                    />
+                    <StatCard
+                        title="Active Tickets"
+                        value={stats?.activeTickets || 3}
+                        icon={<Clock className="h-6 w-6" />}
+                        color="yellow"
+                    />
+                    <StatCard
+                        title="Available Slots"
+                        value={`${stats?.availableSlots || 37}/${stats?.totalSlots || 200}`}
+                        icon={<Users className="h-6 w-6" />}
+                        color="purple"
+                    />
+                </div>
+
+                {/* Recent Activity */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Active Tickets */}
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                Active Tickets
+                            </h3>
+                        </div>
+                        <div className="p-6">
+                            <div className="space-y-4">
+                                <ActiveTicketRow
+                                    plate="ABC-1234"
+                                    duration="28 min"
+                                    status="Active"
+                                />
+                                <ActiveTicketRow
+                                    plate="XY2-5678"
+                                    duration="15 min"
+                                    status="Active"
+                                />
+                                <ActiveTicketRow
+                                    plate="DEF-9012"
+                                    duration="40 min"
+                                    status="Active"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Quick Stats */}
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                Today's Summary
+                            </h3>
+                        </div>
+                        <div className="p-6">
+                            <div className="space-y-4">
+                                <SummaryRow
+                                    label="Total Collected"
+                                    value={`₱ ${stats?.totalRevenue || 940}.00`}
+                                    icon={<DollarSign className="h-5 w-5 text-green-600" />}
+                                />
+                                <SummaryRow
+                                    label="Paid Tickets"
+                                    value={stats?.paidTickets || 121}
+                                    icon={<CheckCircle className="h-5 w-5 text-blue-600" />}
+                                />
+                                <SummaryRow
+                                    label="Cancelled"
+                                    value={stats?.cancelledTickets || 0}
+                                    icon={<XCircle className="h-5 w-5 text-red-600" />}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Revenue Chart Placeholder */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Revenue Overview
+                        </h3>
+                    </div>
+                    <div className="p-6">
+                        <div className="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                            <div className="text-center">
+                                <TrendingUp className="h-12 w-12 mx-auto mb-2 text-blue-600" />
+                                <p>Chart coming soon...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </AdminLayout>
+    );
+}
+
+function StatCard({
+    title,
+    value,
+    icon,
+    color,
+    trend,
+}: {
+    title: string;
+    value: string | number;
+    icon: React.ReactNode;
+    color: 'blue' | 'green' | 'yellow' | 'purple';
+    trend?: string;
+}) {
+    const colorClasses = {
+        blue: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+        green: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
+        yellow: 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400',
+        purple: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
+    };
+
+    return (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="flex items-center justify-between mb-4">
+                <div className={`p-3 rounded-lg ${colorClasses[color]}`}>{icon}</div>
+                {trend && (
+                    <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                        {trend}
+                    </span>
+                )}
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{value}</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{title}</p>
+        </div>
+    );
+}
+
+function ActiveTicketRow({
+    plate,
+    duration,
+    status,
+}: {
+    plate: string;
+    duration: string;
+    status: string;
+}) {
+    return (
+        <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700 last:border-0">
+            <div>
+                <p className="font-medium text-gray-900 dark:text-white">Plate: {plate}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Duration: {duration}</p>
+            </div>
+            <span className="px-3 py-1 text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full">
+                {status}
+            </span>
+        </div>
+    );
+}
+
+function SummaryRow({
+    label,
+    value,
+    icon,
+}: {
+    label: string;
+    value: string | number;
+    icon: React.ReactNode;
+}) {
+    return (
+        <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700 last:border-0">
+            <div className="flex items-center space-x-3">
+                {icon}
+                <span className="text-gray-700 dark:text-gray-300">{label}</span>
+            </div>
+            <span className="font-semibold text-gray-900 dark:text-white">{value}</span>
+        </div>
+    );
+}
