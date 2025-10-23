@@ -20,7 +20,7 @@ class TicketController extends Controller
             ->where('agent_id', auth()->id())
             ->where('status', 'active')
             ->latest()
-            ->get();
+            ->paginate(30);
 
         return Inertia::render('tickets/index', [
             'tickets' => $tickets,
