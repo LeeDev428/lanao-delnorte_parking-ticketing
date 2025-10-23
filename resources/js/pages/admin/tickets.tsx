@@ -1,6 +1,6 @@
 import AdminLayout from '@/layouts/admin/admin-layout';
-import { Head, Link } from '@inertiajs/react';
-import { Search, Filter, Download, Eye, Plus } from 'lucide-react';
+import { Head } from '@inertiajs/react';
+import { Search, Filter, Download, Eye } from 'lucide-react';
 import { useState } from 'react';
 
 interface Ticket {
@@ -105,13 +105,6 @@ export default function Tickets({ tickets }: TicketsProps) {
                             <option value="paid">Paid</option>
                             <option value="cancelled">Cancelled</option>
                         </select>
-                        <Link
-                            href="/admin/tickets/create"
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
-                        >
-                            <Plus className="h-4 w-4" />
-                            New Ticket
-                        </Link>
                         <button className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
                             <Download className="h-4 w-4" />
                             Export
