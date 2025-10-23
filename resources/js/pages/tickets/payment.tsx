@@ -32,7 +32,7 @@ export default function TicketPayment({ ticket }: PaymentProps) {
     const minutes = elapsedMinutes % 60;
 
     // Calculate amount for hourly
-    let amount = ticket.price;
+    let amount = Number(ticket.price) || 0;
     if (ticket.rate_type === 'hourly') {
         const chargeableHours = Math.ceil(elapsedMinutes / 60) || 1;
         amount = chargeableHours * 40; // ₱40 per hour
