@@ -1,6 +1,6 @@
 import AdminLayout from '@/layouts/admin/admin-layout';
-import { Head } from '@inertiajs/react';
-import { Search, Filter, Download, Eye } from 'lucide-react';
+import { Head, Link } from '@inertiajs/react';
+import { Search, Filter, Download, Eye, Plus } from 'lucide-react';
 import { useState } from 'react';
 
 interface Ticket {
@@ -19,15 +19,16 @@ interface Ticket {
 }
 
 interface TicketsProps {
-    tickets: Ticket[];
+    tickets: Ticket[] | { data: Ticket[] } | any;
 }
 
 export default function Tickets({ tickets }: TicketsProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState<string>('all');
 
-    // Mock data for demonstration
-    const mockTickets: Ticket[] = tickets || [
+    // Ensure tickets is always an array - handle both array and paginated object
+    const ticketData = tickets?.data || tickets || [];
+    const mockTickets: Ticket[] = Array.isArray(ticketData) ? ticketData : [
         {
             id: 1,
             ticket_id: 'P23-0214',
@@ -104,7 +105,14 @@ export default function Tickets({ tickets }: TicketsProps) {
                             <option value="paid">Paid</option>
                             <option value="cancelled">Cancelled</option>
                         </select>
-                        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                        <Link
+                            href="/admin/tickets/create"
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+                        >
+                            <Plus className="h-4 w-4" />
+                            New Ticket
+                        </Link>
+                        <button className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
                             <Download className="h-4 w-4" />
                             Export
                         </button>
@@ -174,7 +182,7 @@ export default function Tickets({ tickets }: TicketsProps) {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                                ₱ {ticket.price.toFixed(2)}
+                                                ₱ {Number(ticket.price).toFixed(2)}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
