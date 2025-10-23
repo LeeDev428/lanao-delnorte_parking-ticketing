@@ -30,10 +30,10 @@ class RateSetting extends Model
         if ($this->rate_type === 'hourly') {
             // Round up to next hour (1hr 1min = 2hrs)
             $hours = ceil($durationMinutes / 60);
-            return $hours * $this->price;
+            return (float)($hours * $this->price);
         }
 
         // Flat rate and overnight have fixed prices
-        return $this->price;
+        return (float)$this->price;
     }
 }
