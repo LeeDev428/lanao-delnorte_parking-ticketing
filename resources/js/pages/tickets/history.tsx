@@ -78,7 +78,7 @@ export default function History({ tickets }: HistoryProps) {
                         </div>
                     ) : (
                         <>
-                            <div className="space-y-2">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {tickets.data.map((ticket) => {
                                     const amount = ticket.payment 
                                         ? Number(ticket.payment.amount) || 0 
@@ -87,87 +87,97 @@ export default function History({ tickets }: HistoryProps) {
                                     return (
                                         <div
                                             key={ticket.id}
-                                            className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 hover:shadow-md transition-shadow"
+                                            className={`border-2 rounded-xl p-4 hover:shadow-lg transition-all ${
+                                                ticket.status === 'paid'
+                                                    ? 'border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800'
+                                                    : 'border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800'
+                                            }`}
                                         >
-                                            <div className="flex items-center justify-between gap-4">
-                                                {/* Left: Status & Ticket Info */}
-                                                <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                    <div className={`p-1.5 rounded-lg flex-shrink-0 ${
-                                                        ticket.status === 'paid'
-                                                            ? 'bg-green-100 dark:bg-green-900'
-                                                            : 'bg-red-100 dark:bg-red-900'
-                                                    }`}>
-                                                        {ticket.status === 'paid' ? (
-                                                            <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                                                        ) : (
-                                                            <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                                                        )}
-                                                    </div>
-                                                    <div className="min-w-0 flex-1">
-                                                        <div className="flex items-center gap-2">
-                                                            <p className="font-bold text-sm text-gray-900 dark:text-white truncate">
-                                                                {ticket.plate_number || 'No Plate'}
-                                                            </p>
-                                                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                                                ticket.status === 'paid'
-                                                                    ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                                                                    : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
-                                                            }`}>
-                                                                {ticket.status === 'paid' ? 'Paid' : 'Cancelled'}
-                                                            </span>
-                                                        </div>
-                                                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                                                            {ticket.ticket_id}
-                                                        </p>
-                                                    </div>
+                                            {/* Header with Status Icon */}
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <div className={`p-2 rounded-lg ${
+                                                    ticket.status === 'paid'
+                                                        ? 'bg-green-500'
+                                                        : 'bg-red-500'
+                                                }`}>
+                                                    {ticket.status === 'paid' ? (
+                                                        <CheckCircle className="h-5 w-5 text-white" />
+                                                    ) : (
+                                                        <XCircle className="h-5 w-5 text-white" />
+                                                    )}
                                                 </div>
-                                                
-                                                {/* Middle: Details */}
-                                                <div className="flex items-center gap-4 flex-shrink-0 text-xs text-gray-600 dark:text-gray-400">
-                                                    <div className="flex items-center gap-1">
-                                                        <MapPin className="h-3.5 w-3.5" />
-                                                        <span>{ticket.parking_zone}</span>
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <h3 className="font-bold text-base text-gray-900 dark:text-white">
+                                                            {ticket.plate_number || 'No Plate'}
+                                                        </h3>
+                                                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                                            ticket.status === 'paid'
+                                                                ? 'bg-green-600 text-white'
+                                                                : 'bg-red-600 text-white'
+                                                        }`}>
+                                                            {ticket.status === 'paid' ? 'Paid' : 'Cancelled'}
+                                                        </span>
                                                     </div>
-                                                    <div className="flex items-center gap-1">
-                                                        <Clock className="h-3.5 w-3.5" />
-                                                        <span>{calculateDuration(ticket.entry_time, ticket.exit_time)}</span>
-                                                    </div>
-                                                    <span className={`px-2 py-0.5 rounded ${
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                        {ticket.ticket_id}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Details */}
+                                            <div className="space-y-2 mb-4">
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <MapPin className="h-4 w-4 text-gray-400" />
+                                                    <span className="text-gray-600 dark:text-gray-300">{ticket.parking_zone}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <Clock className="h-4 w-4 text-gray-400" />
+                                                    <span className="text-gray-600 dark:text-gray-300">
+                                                        {calculateDuration(ticket.entry_time, ticket.exit_time)}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
                                                         ticket.rate_type === 'hourly' 
                                                             ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
                                                             : ticket.rate_type === 'flat_rate'
                                                             ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
                                                             : 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300'
                                                     }`}>
-                                                        {ticket.rate_type === 'flat_rate' ? 'Flat' : 
+                                                        {ticket.rate_type === 'flat_rate' ? 'Flat Rate' : 
                                                          ticket.rate_type === 'overnight' ? 'Overnight' : 'Hourly'}
                                                     </span>
                                                 </div>
-                                                
-                                                {/* Right: Amount & Payment Info */}
-                                                <div className="flex items-center gap-4 flex-shrink-0">
-                                                    <div className="text-right">
-                                                        <p className="text-lg font-bold text-gray-900 dark:text-white">
-                                                            ₱{amount.toFixed(2)}
-                                                        </p>
-                                                        {ticket.payment && (
-                                                            <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-                                                                {ticket.payment.payment_method}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                    <div className="text-xs text-gray-500 dark:text-gray-400 w-32">
-                                                        {ticket.payment ? (
-                                                            <>
-                                                                <p className="truncate">#{ticket.payment.receipt_number}</p>
-                                                                <p>{new Date(ticket.payment.paid_at).toLocaleDateString()}</p>
-                                                            </>
-                                                        ) : (
-                                                            <p>{new Date(ticket.exit_time).toLocaleDateString()}</p>
-                                                        )}
-                                                    </div>
-                                                </div>
                                             </div>
+
+                                            {/* Amount */}
+                                            <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+                                                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                                                    ₱{amount.toFixed(2)}
+                                                </p>
+                                                {ticket.payment && (
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 capitalize mt-1">
+                                                        via {ticket.payment.payment_method}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            {/* Receipt Info */}
+                                            {ticket.payment ? (
+                                                <div className="space-y-1">
+                                                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                                                        <span className="font-medium">Receipt:</span> {ticket.payment.receipt_number}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                        {new Date(ticket.payment.paid_at).toLocaleString()}
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                    Cancelled on {new Date(ticket.exit_time).toLocaleString()}
+                                                </p>
+                                            )}
                                         </div>
                                     );
                                 })}
