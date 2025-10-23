@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Clock, Car, MapPin, CreditCard, XCircle, CheckCircle } from 'lucide-react';
+import { Clock, Car, MapPin, CreditCard, XCircle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 
@@ -17,7 +17,20 @@ interface Ticket {
 }
 
 interface ActiveTicketsProps {
-    tickets: Ticket[];
+    tickets: {
+        data: Ticket[];
+        current_page: number;
+        last_page: number;
+        total: number;
+        per_page: number;
+        from: number;
+        to: number;
+        links: Array<{
+            url: string | null;
+            label: string;
+            active: boolean;
+        }>;
+    };
 }
 
 export default function ActiveTickets({ tickets }: ActiveTicketsProps) {
@@ -83,14 +96,14 @@ export default function ActiveTickets({ tickets }: ActiveTicketsProps) {
                             <p className="text-blue-100">Currently parked vehicles</p>
                         </div>
                         <div className="bg-white/20 px-4 py-2 rounded-lg">
-                            <p className="text-3xl font-bold">{tickets?.length || 0}</p>
+                            <p className="text-3xl font-bold">{tickets?.total || 0}</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Tickets List */}
                 <div className="bg-white dark:bg-gray-800 rounded-b-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-6">
-                    {!tickets || tickets.length === 0 ? (
+                    {!tickets?.data || tickets.data.length === 0 ? (
                         <div className="text-center py-12">
                             <Car className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                             <p className="text-gray-500 dark:text-gray-400 text-lg">No active tickets</p>
@@ -101,83 +114,131 @@ export default function ActiveTickets({ tickets }: ActiveTicketsProps) {
                             </Link>
                         </div>
                     ) : (
-                        <div className="space-y-3">
-                            {tickets.map((ticket) => (
-                                <div
-                                    key={ticket.id}
-                                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 hover:shadow-md transition-shadow"
-                                >
-                                    <div className="flex items-center justify-between gap-4">
-                                        {/* Left: Ticket Info */}
-                                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                                            <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-lg flex-shrink-0">
-                                                <Car className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        <>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {tickets.data.map((ticket) => (
+                                    <div
+                                        key={ticket.id}
+                                        className="border-2 border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800 rounded-xl p-4 hover:shadow-lg transition-all"
+                                    >
+                                        {/* Header with Car Icon */}
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <div className="bg-blue-500 p-2 rounded-lg">
+                                                <Car className="h-5 w-5 text-white" />
                                             </div>
-                                            <div className="min-w-0 flex-1">
-                                                <p className="font-bold text-base text-gray-900 dark:text-white truncate">
+                                            <div className="flex-1">
+                                                <h3 className="font-bold text-base text-gray-900 dark:text-white">
                                                     {ticket.plate_number || 'No Plate'}
-                                                </p>
+                                                </h3>
                                                 <p className="text-xs text-gray-500 dark:text-gray-400">
                                                     {ticket.ticket_id}
                                                 </p>
                                             </div>
                                         </div>
-                                        
-                                        {/* Middle: Details */}
-                                        <div className="flex items-center gap-4 flex-shrink-0">
-                                            <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
-                                                <MapPin className="h-3.5 w-3.5" />
-                                                <span>{ticket.parking_zone}</span>
+
+                                        {/* Details */}
+                                        <div className="space-y-2 mb-4">
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <MapPin className="h-4 w-4 text-gray-400" />
+                                                <span className="text-gray-600 dark:text-gray-300">{ticket.parking_zone}</span>
                                             </div>
-                                            <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
-                                                <Clock className="h-3.5 w-3.5" />
-                                                <span>{calculateElapsedTime(ticket.entry_time)}</span>
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <Clock className="h-4 w-4 text-gray-400" />
+                                                <span className="text-gray-600 dark:text-gray-300">
+                                                    {calculateElapsedTime(ticket.entry_time)}
+                                                </span>
                                             </div>
-                                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                                ticket.rate_type === 'hourly' 
-                                                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                                                    : ticket.rate_type === 'flat_rate'
-                                                    ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                                                    : 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300'
-                                            }`}>
-                                                {ticket.rate_type === 'flat_rate' ? 'Flat' : 
-                                                 ticket.rate_type === 'overnight' ? 'Overnight' : 'Hourly'}
-                                            </span>
+                                            <div>
+                                                <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
+                                                    ticket.rate_type === 'hourly' 
+                                                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                                                        : ticket.rate_type === 'flat_rate'
+                                                        ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                                                        : 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300'
+                                                }`}>
+                                                    {ticket.rate_type === 'flat_rate' ? 'Flat Rate' : 
+                                                     ticket.rate_type === 'overnight' ? 'Overnight' : 'Hourly'}
+                                                </span>
+                                            </div>
                                         </div>
-                                        
-                                        {/* Right: Price & Actions */}
-                                        <div className="flex items-center gap-3 flex-shrink-0">
-                                            <div className="text-right">
-                                                <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                                                    ₱{(calculateCurrentCharge(ticket) || 0).toFixed(2)}
+
+                                        {/* Amount */}
+                                        <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+                                            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                                                ₱{(calculateCurrentCharge(ticket) || 0).toFixed(2)}
+                                            </p>
+                                            {ticket.rate_type === 'hourly' && (
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                    Current charge
                                                 </p>
-                                            </div>
-                                            
-                                            <div className="flex gap-2">
-                                                {ticket.rate_type === 'hourly' && (
-                                                    <Link href={`/tickets/${ticket.id}/payment`}>
-                                                        <Button size="sm" className="bg-green-600 hover:bg-green-700 h-8 px-3">
-                                                            <CreditCard className="h-3.5 w-3.5 mr-1" />
-                                                            Pay
-                                                        </Button>
-                                                    </Link>
-                                                )}
-                                                
-                                                <Button 
-                                                    size="sm" 
-                                                    variant="destructive"
-                                                    onClick={() => handleDeactivate(ticket.id)}
-                                                    className="bg-red-600 hover:bg-red-700 h-8 px-3"
-                                                >
-                                                    <XCircle className="h-3.5 w-3.5 mr-1" />
-                                                    Deactivate
-                                                </Button>
-                                            </div>
+                                            )}
+                                        </div>
+
+                                        {/* Action Buttons */}
+                                        <div className="flex gap-2">
+                                            {ticket.rate_type === 'hourly' && (
+                                                <Link href={`/tickets/${ticket.id}/payment`} className="flex-1">
+                                                    <Button className="w-full bg-green-600 hover:bg-green-700 h-9">
+                                                        <CreditCard className="h-4 w-4 mr-2" />
+                                                        Pay Now
+                                                    </Button>
+                                                </Link>
+                                            )}
+                                            <Button 
+                                                variant="destructive"
+                                                onClick={() => handleDeactivate(ticket.id)}
+                                                className={`bg-red-600 hover:bg-red-700 h-9 ${ticket.rate_type === 'hourly' ? '' : 'w-full'}`}
+                                            >
+                                                <XCircle className="h-4 w-4 mr-2" />
+                                                Deactivate
+                                            </Button>
                                         </div>
                                     </div>
+                                ))}
+                            </div>
+
+                        {/* Pagination */}
+                        {tickets.last_page > 1 && (
+                            <div className="mt-6 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-4">
+                                <div className="text-sm text-gray-600 dark:text-gray-400">
+                                    Showing {tickets.from} to {tickets.to} of {tickets.total} results
                                 </div>
-                            ))}
-                        </div>
+                                <div className="flex gap-2">
+                                    {tickets.links.map((link, index) => {
+                                        if (!link.url) {
+                                            return (
+                                                <Button
+                                                    key={index}
+                                                    disabled
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="min-w-[40px]"
+                                                >
+                                                    {index === 0 ? <ChevronLeft className="h-4 w-4" /> : 
+                                                     index === tickets.links.length - 1 ? <ChevronRight className="h-4 w-4" /> :
+                                                     link.label}
+                                                </Button>
+                                            );
+                                        }
+
+                                        return (
+                                            <Link key={index} href={link.url}>
+                                                <Button
+                                                    variant={link.active ? "default" : "outline"}
+                                                    size="sm"
+                                                    className={`min-w-[40px] ${link.active ? 'bg-blue-600' : ''}`}
+                                                >
+                                                    {index === 0 ? <ChevronLeft className="h-4 w-4" /> : 
+                                                     index === tickets.links.length - 1 ? <ChevronRight className="h-4 w-4" /> :
+                                                     link.label}
+                                                </Button>
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+                    </>
                     )}
                 </div>
             </div>
