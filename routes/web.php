@@ -40,6 +40,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/', [App\Http\Controllers\TicketController::class, 'store'])->name('store');
         Route::get('/{ticket}/payment', [App\Http\Controllers\TicketController::class, 'showPayment'])->name('payment');
         Route::post('/{ticket}/payment', [App\Http\Controllers\TicketController::class, 'processPayment'])->name('payment.process');
+        Route::post('/{ticket}/deactivate', [App\Http\Controllers\TicketController::class, 'deactivate'])->name('deactivate');
         Route::get('/receipt/{payment}', [App\Http\Controllers\TicketController::class, 'showReceipt'])->name('receipt');
         Route::get('/history', [App\Http\Controllers\TicketController::class, 'history'])->name('history');
     });
@@ -57,6 +58,45 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('tickets/{ticket}', [App\Http\Controllers\Admin\AdminTicketController::class, 'show'])->name('tickets.show');
         Route::patch('tickets/{ticket}', [App\Http\Controllers\Admin\AdminTicketController::class, 'update'])->name('tickets.update');
         Route::delete('tickets/{ticket}', [App\Http\Controllers\Admin\AdminTicketController::class, 'destroy'])->name('tickets.destroy');
+
+        // Rate Settings Management
+        Route::get('rate-settings', function () {
+            return Inertia::render('admin/rate-settings', [
+                'rateSettings' => \App\Models\RateSetting::all(),
+            ]);
+        })->name('rate-settings');
+
+        Route::post('rate-settings', function (\Illuminate\Http\Request $request) {
+            $validated = $request->validate([
+                'rate_type' => 'required|in:hourly,flat_rate,overnight|unique:rate_settings,rate_type',
+                'price' => 'required|numeric|min:0',
+                'duration_minutes' => 'nullable|integer|min:0',
+                'description' => 'required|string|max:255',
+                'is_active' => 'boolean',
+            ]);
+
+            \App\Models\RateSetting::create($validated);
+
+            return redirect()->back()->with('success', 'Rate created successfully!');
+        })->name('rate-settings.store');
+
+        Route::patch('rate-settings/{rateSetting}', function (\Illuminate\Http\Request $request, \App\Models\RateSetting $rateSetting) {
+            $validated = $request->validate([
+                'price' => 'required|numeric|min:0',
+                'duration_minutes' => 'nullable|integer|min:0',
+                'description' => 'required|string|max:255',
+            ]);
+
+            $rateSetting->update($validated);
+
+            return redirect()->back()->with('success', 'Rate updated successfully!');
+        })->name('rate-settings.update');
+
+        Route::delete('rate-settings/{rateSetting}', function (\App\Models\RateSetting $rateSetting) {
+            $rateSetting->delete();
+
+            return redirect()->back()->with('success', 'Rate deleted successfully!');
+        })->name('rate-settings.destroy');
 
         Route::get('revenue', function () {
             $controller = new \App\Http\Controllers\Admin\AdminTicketController();
