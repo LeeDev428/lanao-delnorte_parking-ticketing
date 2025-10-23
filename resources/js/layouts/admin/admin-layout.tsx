@@ -9,6 +9,7 @@ import {
     Menu,
     X,
     Car,
+    Settings,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -34,6 +35,12 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
             href: '/admin/tickets',
             icon: Ticket,
             current: currentUrl === '/admin/tickets',
+        },
+        {
+            name: 'Rate Settings',
+            href: '/admin/rate-settings',
+            icon: Settings,
+            current: currentUrl === '/admin/rate-settings',
         },
         {
             name: 'Revenue Reports',
