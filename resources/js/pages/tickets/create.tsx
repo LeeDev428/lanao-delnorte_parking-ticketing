@@ -24,13 +24,17 @@ interface NewTicketProps {
 export default function NewTicket({ rateSettings, parkingZones }: NewTicketProps) {
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
     
-    const mockRates: RateSetting[] = rateSettings || [
+    // Use backend data if available, otherwise mock data
+    const mockRates: RateSetting[] = rateSettings && rateSettings.length > 0 ? rateSettings.map(rate => ({
+        ...rate,
+        price: Number(rate.price) // Ensure price is a number
+    })) : [
         { id: 1, rate_type: 'hourly', price: 40, duration_minutes: null, description: 'Open hours - ₱40 per hour' },
         { id: 2, rate_type: 'flat_rate', price: 50, duration_minutes: 180, description: 'Flat rate - ₱50 for 3 hours' },
         { id: 3, rate_type: 'overnight', price: 100, duration_minutes: 720, description: 'Overnight - ₱100 for 12 hours' },
     ];
 
-    const zones = parkingZones || ['Zone 1', 'Zone 2', 'Zone 3', 'Zone 4'];
+    const zones = parkingZones && parkingZones.length > 0 ? parkingZones : ['Zone 1', 'Zone 2', 'Zone 3', 'Zone 4'];
 
     const { data, setData, post, processing, errors } = useForm({
         plate_number: '',
@@ -54,11 +58,9 @@ export default function NewTicket({ rateSettings, parkingZones }: NewTicketProps
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         post('/tickets', {
+            forceFormData: true, // Important for file upload
             onSuccess: () => {
-                // Redirect to payment if flat_rate or overnight
-                if (data.rate_type !== 'hourly') {
-                    // Will redirect to payment page
-                }
+                // Backend will handle redirect to payment or dashboard
             },
         });
     };
