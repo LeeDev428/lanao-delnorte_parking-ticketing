@@ -142,6 +142,25 @@ class TicketController extends Controller
     }
 
     /**
+     * Manually deactivate ticket (mark as completed without payment)
+     */
+    public function deactivate(Ticket $ticket)
+    {
+        // Verify agent owns this ticket
+        if ($ticket->agent_id !== auth()->id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        // Update ticket status
+        $ticket->update([
+            'status' => 'cancelled',
+            'exit_time' => now(),
+        ]);
+
+        return redirect()->route('tickets.index')->with('success', 'Ticket deactivated successfully');
+    }
+
+    /**
      * Ticket history
      */
     public function history()
@@ -150,7 +169,7 @@ class TicketController extends Controller
             ->where('agent_id', auth()->id())
             ->whereIn('status', ['paid', 'cancelled'])
             ->latest()
-            ->paginate(20);
+            ->paginate(30);
 
         return Inertia::render('tickets/history', [
             'tickets' => $tickets,
