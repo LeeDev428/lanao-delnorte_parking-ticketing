@@ -2,7 +2,7 @@ import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { Car, DollarSign, Clock, Plus, Ticket as TicketIcon } from 'lucide-react';
+import { Car, DollarSign, Clock, ParkingSquare, Plus } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -49,15 +49,8 @@ export default function Dashboard({ stats, activeTickets }: DashboardProps) {
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-                        <p className="text-gray-600 dark:text-gray-400 mt-1">Welcome back! Here's your parking overview.</p>
+                        <p className="text-gray-600 dark:text-gray-400 mt-1">Welcome back! Monitor active parking tickets.</p>
                     </div>
-                    <Link
-                        href="/tickets/create"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors shadow-lg hover:shadow-xl"
-                    >
-                        <Plus className="h-5 w-5" />
-                        New Ticket
-                    </Link>
                 </div>
 
                 {/* Stats Grid */}
@@ -65,7 +58,7 @@ export default function Dashboard({ stats, activeTickets }: DashboardProps) {
                     <StatCard
                         title="Today's Total Tickets"
                         value={mockStats.todayTickets}
-                        icon={<TicketIcon className="h-6 w-6" />}
+                        icon={<Car className="h-6 w-6" />}
                         color="blue"
                         subtitle="Total tickets issued"
                     />
@@ -145,6 +138,15 @@ export default function Dashboard({ stats, activeTickets }: DashboardProps) {
                         )}
                     </div>
                 </div>
+
+                {/* Floating Action Button - New Ticket */}
+                <Link
+                    href="/tickets/create"
+                    className="fixed bottom-6 right-6 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-full p-4 shadow-lg transition-all duration-200 hover:scale-110 z-50"
+                    title="New Ticket"
+                >
+                    <Plus className="h-8 w-8" />
+                </Link>
             </div>
         </AppLayout>
     );
