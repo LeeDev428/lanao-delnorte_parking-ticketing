@@ -27,6 +27,9 @@ interface ReceiptProps {
 }
 
 export default function Receipt({ payment }: ReceiptProps) {
+    // Ensure amount is a number
+    const amount = Number(payment.amount) || 0;
+    
     // Generate simple QR code data URL (placeholder)
     const qrCodeData = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23000'/%3E%3Crect x='10' y='10' width='30' height='30' fill='%23fff'/%3E%3Crect x='50' y='10' width='30' height='30' fill='%23fff'/%3E%3Crect x='90' y='10' width='30' height='30' fill='%23fff'/%3E%3Crect x='130' y='10' width='30' height='30' fill='%23fff'/%3E%3Crect x='170' y='10' width='20' height='30' fill='%23fff'/%3E%3C/svg%3E`;
 
@@ -130,7 +133,7 @@ export default function Receipt({ payment }: ReceiptProps) {
                             <div className="flex justify-between items-center">
                                 <span className="text-lg font-semibold text-gray-700 dark:text-gray-300">Total Amount</span>
                                 <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                                    ₱ {payment.amount.toFixed(2)}
+                                    ₱ {amount.toFixed(2)}
                                 </span>
                             </div>
                         </div>
