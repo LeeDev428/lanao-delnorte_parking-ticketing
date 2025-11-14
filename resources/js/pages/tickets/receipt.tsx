@@ -1,7 +1,10 @@
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Head, Link } from '@inertiajs/react';
-import { Check, Download, Share2, Home } from 'lucide-react';
+import { Check, Download, Share2, Home, Bluetooth, Printer, Loader2 } from 'lucide-react';
+import { usePrinter } from '@/hooks/use-printer';
+import { useState } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Payment {
     id: number;
@@ -30,11 +33,45 @@ export default function Receipt({ payment }: ReceiptProps) {
     // Ensure amount is a number
     const amount = Number(payment.amount) || 0;
     
+    // Bluetooth printer hook
+    const printer = usePrinter();
+    const [showSuccess, setShowSuccess] = useState(false);
+    
     // Generate simple QR code data URL (placeholder)
     const qrCodeData = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23000'/%3E%3Crect x='10' y='10' width='30' height='30' fill='%23fff'/%3E%3Crect x='50' y='10' width='30' height='30' fill='%23fff'/%3E%3Crect x='90' y='10' width='30' height='30' fill='%23fff'/%3E%3Crect x='130' y='10' width='30' height='30' fill='%23fff'/%3E%3Crect x='170' y='10' width='20' height='30' fill='%23fff'/%3E%3C/svg%3E`;
 
     const handlePrint = () => {
         window.print();
+    };
+
+    const handleBluetoothConnect = async () => {
+        try {
+            await printer.connect();
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+        } catch (error) {
+            console.error('Connection error:', error);
+        }
+    };
+
+    const handleBluetoothPrint = async () => {
+        try {
+            await printer.print(payment);
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+        } catch (error) {
+            console.error('Print error:', error);
+        }
+    };
+
+    const handleTestPrint = async () => {
+        try {
+            await printer.testPrint();
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+        } catch (error) {
+            console.error('Test print error:', error);
+        }
     };
 
     return (
@@ -139,6 +176,101 @@ export default function Receipt({ payment }: ReceiptProps) {
                         </div>
 
                         {/* Action Buttons */}
+                        {printer.isNative && (
+                            <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                {/* Error Message */}
+                                {printer.error && (
+                                    <Alert variant="destructive">
+                                        <AlertDescription>{printer.error}</AlertDescription>
+                                    </Alert>
+                                )}
+
+                                {/* Success Message */}
+                                {showSuccess && (
+                                    <Alert className="bg-green-50 border-green-200 text-green-800">
+                                        <Check className="h-4 w-4" />
+                                        <AlertDescription>
+                                            {printer.isPrinting ? 'Printing...' : 'Operation successful!'}
+                                        </AlertDescription>
+                                    </Alert>
+                                )}
+
+                                {/* Bluetooth Printer Section */}
+                                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-2">
+                                            <Bluetooth className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                            <span className="font-semibold text-gray-900 dark:text-white">
+                                                Bluetooth Printer
+                                            </span>
+                                        </div>
+                                        {printer.isConnected && (
+                                            <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs rounded-full">
+                                                Connected: {printer.deviceName}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {!printer.isConnected ? (
+                                            <Button
+                                                onClick={handleBluetoothConnect}
+                                                disabled={printer.isConnecting}
+                                                className="col-span-2 bg-blue-600 hover:bg-blue-700 text-white"
+                                            >
+                                                {printer.isConnecting ? (
+                                                    <>
+                                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                        Connecting...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Bluetooth className="h-4 w-4 mr-2" />
+                                                        Connect to PT-210
+                                                    </>
+                                                )}
+                                            </Button>
+                                        ) : (
+                                            <>
+                                                <Button
+                                                    onClick={handleBluetoothPrint}
+                                                    disabled={printer.isPrinting}
+                                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                                >
+                                                    {printer.isPrinting ? (
+                                                        <>
+                                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                            Printing...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Printer className="h-4 w-4 mr-2" />
+                                                            Print Receipt
+                                                        </>
+                                                    )}
+                                                </Button>
+                                                <Button
+                                                    onClick={handleTestPrint}
+                                                    disabled={printer.isPrinting}
+                                                    variant="outline"
+                                                >
+                                                    Test Print
+                                                </Button>
+                                                <Button
+                                                    onClick={printer.disconnect}
+                                                    variant="outline"
+                                                    className="col-span-2"
+                                                >
+                                                    Disconnect
+                                                </Button>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Standard Print/Share Buttons */}
                         <div className="grid grid-cols-2 gap-3 pt-4">
                             <Button
                                 onClick={handlePrint}
