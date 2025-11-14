@@ -60,37 +60,37 @@ export default function TicketPayment({ ticket }: PaymentProps) {
         ]}>
             <Head title="Ticket Details" />
             
-            <div className="max-w-2xl mx-auto p-4">
+            <div className="max-w-2xl mx-auto p-3 sm:p-4">
                 {/* Header */}
-                <div className="bg-blue-600 text-white rounded-t-2xl p-6">
-                    <h1 className="text-2xl font-bold mb-1">Ticket Details</h1>
-                    <p className="text-blue-100">Review and process payment</p>
+                <div className="bg-blue-600 text-white rounded-t-2xl p-4 sm:p-6">
+                    <h1 className="text-xl sm:text-2xl font-bold mb-1">Ticket Details</h1>
+                    <p className="text-sm sm:text-base text-blue-100">Review and process payment</p>
                 </div>
 
                 {/* Ticket Info Card */}
                 <div className="bg-white dark:bg-gray-800 shadow-xl rounded-b-2xl border border-gray-200 dark:border-gray-700">
-                    <div className="p-6 space-y-6">
+                    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                         {/* Ticket ID */}
                         <div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Ticket ID</p>
-                            <p className="text-2xl font-bold text-gray-900 dark:text-white">{ticket.ticket_id}</p>
+                            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1">Ticket ID</p>
+                            <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white break-all">{ticket.ticket_id}</p>
                         </div>
 
                         {/* Plate Number */}
-                        <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                            <Car className="h-6 w-6 text-blue-600" />
-                            <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Plate</p>
-                                <p className="text-xl font-bold text-gray-900 dark:text-white">{ticket.plate_number}</p>
+                        <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <Car className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 flex-shrink-0" />
+                            <div className="min-w-0 flex-1">
+                                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Plate</p>
+                                <p className="text-base sm:text-xl font-bold text-gray-900 dark:text-white truncate">{ticket.plate_number}</p>
                             </div>
                         </div>
 
                         {/* Entry Time */}
-                        <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                            <Clock className="h-6 w-6 text-green-600" />
-                            <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Entry</p>
-                                <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                        <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 flex-shrink-0" />
+                            <div className="min-w-0 flex-1">
+                                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Entry</p>
+                                <p className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white">
                                     {new Date(ticket.entry_time).toLocaleTimeString('en-US', { 
                                         hour: 'numeric', 
                                         minute: '2-digit',
@@ -102,11 +102,11 @@ export default function TicketPayment({ ticket }: PaymentProps) {
 
                         {/* Time Elapsed */}
                         {ticket.rate_type === 'hourly' && (
-                            <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                                <Clock className="h-6 w-6 text-blue-600" />
-                                <div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Time Elapsed</p>
-                                    <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                            <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 flex-shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Time Elapsed</p>
+                                    <p className="text-base sm:text-xl font-bold text-blue-600 dark:text-blue-400">
                                         {hours} hr {minutes} min
                                     </p>
                                 </div>
@@ -114,11 +114,11 @@ export default function TicketPayment({ ticket }: PaymentProps) {
                         )}
 
                         {/* Rate Type */}
-                        <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                            <MapPin className="h-6 w-6 text-orange-600" />
-                            <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Rate Type</p>
-                                <p className="text-lg font-semibold text-gray-900 dark:text-white capitalize">
+                        <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600 flex-shrink-0" />
+                            <div className="min-w-0 flex-1">
+                                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Rate Type</p>
+                                <p className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white capitalize">
                                     {ticket.rate_type === 'flat_rate' ? 'Flat Rate' : 
                                      ticket.rate_type === 'overnight' ? 'Overnight' : 'Hourly'}
                                 </p>
@@ -127,36 +127,36 @@ export default function TicketPayment({ ticket }: PaymentProps) {
 
                         {/* Payment Method Selection */}
                         <div>
-                            <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Payment Method</p>
-                            <div className="grid grid-cols-3 gap-3">
+                            <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">Payment Method</p>
+                            <div className="grid grid-cols-3 gap-2 sm:gap-3">
                                 {paymentMethods.map((method) => (
                                     <button
                                         key={method.id}
                                         type="button"
                                         onClick={() => setSelectedMethod(method.id as any)}
-                                        className={`p-4 rounded-lg border-2 transition-all ${
+                                        className={`p-2 sm:p-4 rounded-lg border-2 transition-all ${
                                             selectedMethod === method.id
                                                 ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
                                                 : 'border-gray-300 dark:border-gray-600 hover:border-blue-300'
                                         }`}
                                     >
-                                        <div className={`${method.color} w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2`}>
-                                            <method.icon className="h-6 w-6 text-white" />
+                                        <div className={`${method.color} w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mx-auto mb-1 sm:mb-2`}>
+                                            <method.icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                                         </div>
-                                        <p className="text-sm font-medium text-gray-900 dark:text-white">{method.name}</p>
+                                        <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">{method.name}</p>
                                     </button>
                                 ))}
                             </div>
                         </div>
 
                         {/* Amount to Pay */}
-                        <div className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-6 border-2 border-green-200 dark:border-green-800">
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Amount to Pay</p>
-                            <p className="text-4xl font-bold text-green-600 dark:text-green-400">
-                                ₱ {amount.toFixed(2)}
+                        <div className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-4 sm:p-6 border-2 border-green-200 dark:border-green-800">
+                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">Amount to Pay</p>
+                            <p className="text-3xl sm:text-4xl md:text-5xl font-bold text-green-600 dark:text-green-400 break-words">
+                                ₱{amount.toFixed(2)}
                             </p>
                             {ticket.rate_type === 'hourly' && (
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-2">
                                     ₱40/hour × {Math.ceil(elapsedMinutes / 60)} hour(s)
                                 </p>
                             )}
@@ -166,7 +166,7 @@ export default function TicketPayment({ ticket }: PaymentProps) {
                         <Button
                             onClick={handlePayment}
                             disabled={processing}
-                            className="w-full h-14 text-lg font-semibold bg-green-600 hover:bg-green-700 text-white"
+                            className="w-full h-12 sm:h-14 text-base sm:text-lg font-semibold bg-green-600 hover:bg-green-700 text-white"
                         >
                             {processing ? 'Processing...' : 'Pay Now'}
                         </Button>
