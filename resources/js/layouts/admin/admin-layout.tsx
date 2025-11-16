@@ -10,6 +10,7 @@ import {
     X,
     Car,
     Settings,
+    FileText,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -47,6 +48,12 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
             href: '/admin/revenue',
             icon: DollarSign,
             current: currentUrl === '/admin/revenue',
+        },
+        {
+            name: 'Collections Report',
+            href: '/admin/reports',
+            icon: FileText,
+            current: currentUrl === '/admin/reports',
         },
         {
             name: 'User Management',
