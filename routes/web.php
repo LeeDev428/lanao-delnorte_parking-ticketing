@@ -107,6 +107,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'revenue' => $controller->revenueStats(),
             ]);
         })->name('revenue');
+        
+        // Collections Reports
+        Route::get('reports', [App\Http\Controllers\ReportController::class, 'index'])->name('reports');
 
         Route::get('users', function () {
             return Inertia::render('admin/users', [
