@@ -79,7 +79,7 @@ export default function ActiveTickets({ tickets }: ActiveTicketsProps) {
         ]}>
             <Head title="Active Tickets" />
             
-            <div className="max-w-6xl mx-auto p-6">
+            <div className="w-full px-3 sm:px-6 py-4 sm:py-6">
                 {/* Success Message */}
                 {showSuccess && successMessage && (
                     <div className="mb-6 bg-green-500 text-white rounded-lg p-4 flex items-center gap-3 animate-in slide-in-from-top">
