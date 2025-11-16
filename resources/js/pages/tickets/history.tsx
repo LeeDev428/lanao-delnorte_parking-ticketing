@@ -55,7 +55,7 @@ export default function History({ tickets }: HistoryProps) {
         ]}>
             <Head title="Ticket History" />
             
-            <div className="max-w-6xl mx-auto p-6">
+            <div className="w-full px-3 sm:px-6 py-4 sm:py-6">
                 {/* Header */}
                 <div className="bg-blue-600 text-white rounded-t-2xl p-6">
                     <div className="flex items-center justify-between">
