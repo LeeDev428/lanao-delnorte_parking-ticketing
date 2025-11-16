@@ -26,19 +26,16 @@ interface RemittanceProps {
         transaction_count: number;
     };
     filters: {
-        start_date: string;
-        end_date: string;
+        month: string;
     };
 }
 
 export default function Remittance({ payments, summary, filters }: RemittanceProps) {
-    const [startDate, setStartDate] = useState(filters.start_date);
-    const [endDate, setEndDate] = useState(filters.end_date);
+    const [selectedMonth, setSelectedMonth] = useState(filters.month);
 
     const applyFilters = () => {
         router.get('/tickets/remittance', {
-            start_date: startDate,
-            end_date: endDate,
+            month: selectedMonth,
         }, { preserveState: true });
     };
 
@@ -80,35 +77,28 @@ export default function Remittance({ payments, summary, filters }: RemittancePro
                     )}
                 </div>
 
-                {/* Date Filters */}
+                {/* Month Filter */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
                     <div className="flex items-center gap-2 mb-4">
                         <Filter className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                        <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">Date Range</h2>
+                        <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">Select Month</h2>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <Label htmlFor="start_date" className="text-sm">Start Date</Label>
+                            <Label htmlFor="month" className="text-sm">Month & Year</Label>
                             <Input
-                                id="start_date"
-                                type="date"
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                                className="mt-1"
-                            />
-                        </div>
-                        <div>
-                            <Label htmlFor="end_date" className="text-sm">End Date</Label>
-                            <Input
-                                id="end_date"
-                                type="date"
-                                value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
+                                id="month"
+                                type="month"
+                                value={selectedMonth}
+                                onChange={(e) => setSelectedMonth(e.target.value)}
                                 className="mt-1"
                             />
                         </div>
                         <div className="flex items-end">
-                            <Button onClick={applyFilters} className="w-full">Apply Filters</Button>
+                            <Button onClick={applyFilters} className="w-full bg-blue-600 hover:bg-blue-700">
+                                <Filter className="h-4 w-4 mr-2" />
+                                Apply Filters
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -186,7 +176,7 @@ export default function Remittance({ payments, summary, filters }: RemittancePro
                                             <td className="px-4 py-3 text-sm font-mono text-gray-900 dark:text-white">{payment.receipt_number}</td>
                                             <td className="px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white">{payment.plate_number}</td>
                                             <td className="px-4 py-3 text-sm text-right font-semibold text-green-600 dark:text-green-400">
-                                                ₱{payment.amount.toFixed(2)}
+                                                ₱{Number(payment.amount).toFixed(2)}
                                             </td>
                                             <td className="px-4 py-3 text-sm">
                                                 <PaymentMethodBadge method={payment.payment_method} />
