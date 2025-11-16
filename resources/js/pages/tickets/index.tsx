@@ -1,7 +1,10 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Clock, Car, MapPin, CreditCard, XCircle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, Car, MapPin, CreditCard, XCircle, CheckCircle, ChevronLeft, ChevronRight, Filter, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState, useEffect } from 'react';
 
 interface Ticket {
@@ -31,12 +34,37 @@ interface ActiveTicketsProps {
             active: boolean;
         }>;
     };
+    parkingZones: string[];
+    filters: {
+        zone?: string;
+        rate_type?: string;
+        search?: string;
+    };
 }
 
-export default function ActiveTickets({ tickets }: ActiveTicketsProps) {
+export default function ActiveTickets({ tickets, parkingZones, filters }: ActiveTicketsProps) {
     const [showSuccess, setShowSuccess] = useState(false);
+    const [searchTerm, setSearchTerm] = useState(filters.search || '');
+    const [selectedZone, setSelectedZone] = useState(filters.zone || 'all');
+    const [selectedRateType, setSelectedRateType] = useState(filters.rate_type || 'all');
+    const [showFilters, setShowFilters] = useState(false);
     const { props } = usePage();
     const successMessage = props.success as string | undefined;
+
+    const applyFilters = () => {
+        router.get('/tickets', {
+            search: searchTerm || undefined,
+            zone: selectedZone !== 'all' ? selectedZone : undefined,
+            rate_type: selectedRateType !== 'all' ? selectedRateType : undefined,
+        }, { preserveState: true, preserveScroll: true });
+    };
+
+    const clearFilters = () => {
+        setSearchTerm('');
+        setSelectedZone('all');
+        setSelectedRateType('all');
+        router.get('/tickets', {}, { preserveState: true });
+    };
 
     useEffect(() => {
         if (successMessage) {
@@ -99,6 +127,73 @@ export default function ActiveTickets({ tickets }: ActiveTicketsProps) {
                             <p className="text-3xl font-bold">{tickets?.total || 0}</p>
                         </div>
                     </div>
+                </div>
+
+                {/* Filters */}
+                <div className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                            <Filter className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                            <h2 className="text-base font-semibold text-gray-900 dark:text-white">Filters</h2>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={() => setShowFilters(!showFilters)}>
+                            {showFilters ? 'Hide' : 'Show'}
+                        </Button>
+                    </div>
+                    
+                    {showFilters && (
+                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                            <div>
+                                <Label htmlFor="search" className="text-xs">Plate Number</Label>
+                                <div className="relative">
+                                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+                                    <Input
+                                        id="search"
+                                        placeholder="Search..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="pl-8 h-9"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <Label htmlFor="zone" className="text-xs">Parking Zone</Label>
+                                <Select value={selectedZone} onValueChange={setSelectedZone}>
+                                    <SelectTrigger className="h-9">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Zones</SelectItem>
+                                        {parkingZones.map(zone => (
+                                            <SelectItem key={zone} value={zone}>{zone}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label htmlFor="rate_type" className="text-xs">Rate Type</Label>
+                                <Select value={selectedRateType} onValueChange={setSelectedRateType}>
+                                    <SelectTrigger className="h-9">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Types</SelectItem>
+                                        <SelectItem value="hourly">Hourly</SelectItem>
+                                        <SelectItem value="flat_rate">Flat Rate</SelectItem>
+                                        <SelectItem value="overnight">Overnight</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="flex items-end gap-2">
+                                <Button onClick={applyFilters} className="flex-1 h-9">
+                                    Apply
+                                </Button>
+                                <Button onClick={clearFilters} variant="outline" size="icon" className="h-9 w-9">
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Tickets List */}
