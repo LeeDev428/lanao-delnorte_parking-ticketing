@@ -14,16 +14,36 @@ class TicketController extends Controller
     /**
      * Display agent's active tickets
      */
-    public function index()
+    public function index(Request $request)
     {
-        $tickets = Ticket::with(['agent', 'payment'])
+        $query = Ticket::with(['agent', 'payment'])
             ->where('agent_id', auth()->id())
-            ->where('status', 'active')
-            ->latest()
-            ->paginate(30);
+            ->where('status', 'active');
+
+        // Apply filters
+        if ($request->filled('zone')) {
+            $query->where('parking_zone', $request->zone);
+        }
+        
+        if ($request->filled('rate_type')) {
+            $query->where('rate_type', $request->rate_type);
+        }
+
+        if ($request->filled('search')) {
+            $query->where('plate_number', 'like', '%' . $request->search . '%');
+        }
+
+        $tickets = $query->latest()->paginate(30)->withQueryString();
+        $parkingZones = ['Zone 1', 'Zone 2', 'Zone 3', 'Zone 4'];
 
         return Inertia::render('tickets/index', [
             'tickets' => $tickets,
+            'parkingZones' => $parkingZones,
+            'filters' => [
+                'zone' => $request->zone,
+                'rate_type' => $request->rate_type,
+                'search' => $request->search,
+            ],
         ]);
     }
 
@@ -163,16 +183,41 @@ class TicketController extends Controller
     /**
      * Ticket history
      */
-    public function history()
+    public function history(Request $request)
     {
-        $tickets = Ticket::with(['agent', 'payment'])
+        $query = Ticket::with(['agent', 'payment'])
             ->where('agent_id', auth()->id())
-            ->whereIn('status', ['paid', 'cancelled'])
-            ->latest()
-            ->paginate(30);
+            ->whereIn('status', ['paid', 'cancelled']);
+
+        // Apply filters
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('zone')) {
+            $query->where('parking_zone', $request->zone);
+        }
+        
+        if ($request->filled('rate_type')) {
+            $query->where('rate_type', $request->rate_type);
+        }
+
+        if ($request->filled('search')) {
+            $query->where('plate_number', 'like', '%' . $request->search . '%');
+        }
+
+        $tickets = $query->latest()->paginate(30)->withQueryString();
+        $parkingZones = ['Zone 1', 'Zone 2', 'Zone 3', 'Zone 4'];
 
         return Inertia::render('tickets/history', [
             'tickets' => $tickets,
+            'parkingZones' => $parkingZones,
+            'filters' => [
+                'status' => $request->status,
+                'zone' => $request->zone,
+                'rate_type' => $request->rate_type,
+                'search' => $request->search,
+            ],
         ]);
     }
 }
