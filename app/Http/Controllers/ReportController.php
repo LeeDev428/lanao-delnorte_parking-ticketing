@@ -95,11 +95,17 @@ class ReportController extends Controller
      */
     public function myRemittance(Request $request)
     {
-        $startDate = $request->input('start_date', Carbon::today()->toDateString());
-        $endDate = $request->input('end_date', Carbon::today()->toDateString());
+        // Default to current month
+        $month = $request->input('month', Carbon::now()->format('Y-m'));
+        $date = Carbon::parse($month . '-01');
+        $startDate = $date->startOfMonth()->toDateString();
+        $endDate = $date->copy()->endOfMonth()->toDateString();
 
         $payments = Payment::with(['ticket'])
             ->where('collected_by', auth()->id())
+            ->whereHas('ticket', function($query) {
+                $query->where('status', 'paid');
+            })
             ->whereBetween('paid_at', [
                 Carbon::parse($startDate)->startOfDay(),
                 Carbon::parse($endDate)->endOfDay()
@@ -136,8 +142,7 @@ class ReportController extends Controller
                 'transaction_count' => $payments->count(),
             ],
             'filters' => [
-                'start_date' => $startDate,
-                'end_date' => $endDate,
+                'month' => $request->input('month', Carbon::now()->format('Y-m')),
             ],
         ]);
     }
