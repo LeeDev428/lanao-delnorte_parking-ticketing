@@ -43,6 +43,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/{ticket}/deactivate', [App\Http\Controllers\TicketController::class, 'deactivate'])->name('deactivate');
         Route::get('/receipt/{payment}', [App\Http\Controllers\TicketController::class, 'showReceipt'])->name('receipt');
         Route::get('/history', [App\Http\Controllers\TicketController::class, 'history'])->name('history');
+        
+        // Agent Remittance
+        Route::get('/remittance', [App\Http\Controllers\ReportController::class, 'myRemittance'])->name('remittance');
     });
 
     // Admin routes
