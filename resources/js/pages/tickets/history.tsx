@@ -1,7 +1,11 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link } from '@inertiajs/react';
-import { CheckCircle, XCircle, Clock, Car, MapPin, DollarSign, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import { CheckCircle, XCircle, Clock, Car, MapPin, DollarSign, ChevronLeft, ChevronRight, Filter, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useState } from 'react';
 
 interface Ticket {
     id: number;
@@ -36,9 +40,38 @@ interface HistoryProps {
             active: boolean;
         }>;
     };
+    parkingZones: string[];
+    filters: {
+        status?: string;
+        zone?: string;
+        rate_type?: string;
+        search?: string;
+    };
 }
 
-export default function History({ tickets }: HistoryProps) {
+export default function History({ tickets, parkingZones, filters }: HistoryProps) {
+    const [searchTerm, setSearchTerm] = useState(filters.search || '');
+    const [selectedStatus, setSelectedStatus] = useState(filters.status || 'all');
+    const [selectedZone, setSelectedZone] = useState(filters.zone || 'all');
+    const [selectedRateType, setSelectedRateType] = useState(filters.rate_type || 'all');
+    const [showFilters, setShowFilters] = useState(false);
+
+    const applyFilters = () => {
+        router.get('/tickets/history', {
+            search: searchTerm || undefined,
+            status: selectedStatus !== 'all' ? selectedStatus : undefined,
+            zone: selectedZone !== 'all' ? selectedZone : undefined,
+            rate_type: selectedRateType !== 'all' ? selectedRateType : undefined,
+        }, { preserveState: true, preserveScroll: true });
+    };
+
+    const clearFilters = () => {
+        setSearchTerm('');
+        setSelectedStatus('all');
+        setSelectedZone('all');
+        setSelectedRateType('all');
+        router.get('/tickets/history', {}, { preserveState: true });
+    };
     const calculateDuration = (entryTime: string, exitTime: string) => {
         const entry = new Date(entryTime);
         const exit = new Date(exitTime);
@@ -67,6 +100,86 @@ export default function History({ tickets }: HistoryProps) {
                             <p className="text-3xl font-bold">{tickets?.total || 0}</p>
                         </div>
                     </div>
+                </div>
+
+                {/* Filters */}
+                <div className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                            <Filter className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                            <h2 className="text-base font-semibold text-gray-900 dark:text-white">Filters</h2>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={() => setShowFilters(!showFilters)}>
+                            {showFilters ? 'Hide' : 'Show'}
+                        </Button>
+                    </div>
+                    
+                    {showFilters && (
+                        <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                            <div>
+                                <Label htmlFor="search" className="text-xs">Plate Number</Label>
+                                <div className="relative">
+                                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+                                    <Input
+                                        id="search"
+                                        placeholder="Search..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="pl-8 h-9"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <Label htmlFor="status" className="text-xs">Status</Label>
+                                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                                    <SelectTrigger className="h-9">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Status</SelectItem>
+                                        <SelectItem value="paid">Paid</SelectItem>
+                                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label htmlFor="zone" className="text-xs">Parking Zone</Label>
+                                <Select value={selectedZone} onValueChange={setSelectedZone}>
+                                    <SelectTrigger className="h-9">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Zones</SelectItem>
+                                        {parkingZones.map(zone => (
+                                            <SelectItem key={zone} value={zone}>{zone}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label htmlFor="rate_type" className="text-xs">Rate Type</Label>
+                                <Select value={selectedRateType} onValueChange={setSelectedRateType}>
+                                    <SelectTrigger className="h-9">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Types</SelectItem>
+                                        <SelectItem value="hourly">Hourly</SelectItem>
+                                        <SelectItem value="flat_rate">Flat Rate</SelectItem>
+                                        <SelectItem value="overnight">Overnight</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="flex items-end gap-2">
+                                <Button onClick={applyFilters} className="flex-1 h-9">
+                                    Apply
+                                </Button>
+                                <Button onClick={clearFilters} variant="outline" size="icon" className="h-9 w-9">
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* History List */}
