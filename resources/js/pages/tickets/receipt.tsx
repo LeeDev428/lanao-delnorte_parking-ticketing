@@ -81,7 +81,7 @@ export default function Receipt({ payment }: ReceiptProps) {
         ]}>
             <Head title="Payment Success" />
             
-            <div className="max-w-2xl mx-auto p-4">
+            <div className="max-w-4xl mx-auto p-3 sm:p-6">
                 {/* Success Header */}
                 <div className="bg-green-600 text-white rounded-t-2xl p-8 text-center">
                     <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full mb-4">
