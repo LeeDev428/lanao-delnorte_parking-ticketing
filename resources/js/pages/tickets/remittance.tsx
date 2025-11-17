@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Head, router } from '@inertiajs/react';
-import { DollarSign, Banknote, CreditCard, Wallet, Receipt, Filter, AlertCircle } from 'lucide-react';
+import { DollarSign, Banknote, CreditCard, Wallet, Receipt, Filter, AlertCircle, TrendingUp, Search, Eye, EyeOff, Download } from 'lucide-react';
 import { useState } from 'react';
 
 interface Payment {
@@ -32,12 +32,25 @@ interface RemittanceProps {
 
 export default function Remittance({ payments, summary, filters }: RemittanceProps) {
     const [selectedMonth, setSelectedMonth] = useState(filters.month);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [showAmount, setShowAmount] = useState(true);
 
     const applyFilters = () => {
         router.get('/tickets/remittance', {
             month: selectedMonth,
         }, { preserveState: true });
     };
+
+    // Filter payments based on search
+    const filteredPayments = payments.filter(payment => 
+        payment.receipt_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        payment.plate_number.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // Calculate average transaction
+    const averageTransaction = summary.transaction_count > 0 
+        ? summary.grand_total / summary.transaction_count 
+        : 0;
 
     return (
         <AppLayout breadcrumbs={[
@@ -46,201 +59,244 @@ export default function Remittance({ payments, summary, filters }: RemittancePro
         ]}>
             <Head title="My Remittance" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 sm:gap-6 p-3 sm:p-6">
-                {/* Header */}
-                <div className="flex flex-col gap-3">
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">My Remittance</h1>
-                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
-                            Track your collections and remittance requirements
-                        </p>
+            <div className="flex h-full flex-1 flex-col gap-4 p-3 sm:p-4 max-w-7xl mx-auto w-full">
+                {/* Header with Big Total */}
+                <div className="text-center py-6">
+                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 font-medium mb-2">
+                        {new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} Collection
+                    </p>
+                    <div className="flex items-center justify-center gap-3">
+                        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 dark:text-white">
+                            {showAmount ? `PHP ${summary.grand_total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'PHP ••••••'}
+                        </h1>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setShowAmount(!showAmount)}
+                            className="h-10 w-10"
+                        >
+                            {showAmount ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+                        </Button>
                     </div>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-2">
+                        {summary.transaction_count} transactions
+                    </p>
+                </div>
 
-                    {/* Remittance Alert */}
-                    {summary.cash_to_remit > 0 && (
-                        <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4 rounded-lg">
-                            <div className="flex items-start gap-3">
-                                <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="text-sm font-semibold text-yellow-800 dark:text-yellow-200">
-                                        Cash Remittance Required
-                                    </h3>
-                                    <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-                                        You have collected <strong>₱{summary.cash_to_remit.toFixed(2)}</strong> in cash that needs to be remitted.
-                                    </p>
-                                    <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">
-                                        Note: GCash (₱{summary.total_gcash.toFixed(2)}) and Card (₱{summary.total_card.toFixed(2)}) payments are digital and do not require physical remittance.
+                {/* Search and Filter Bar */}
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                            placeholder="Search by receipt or plate number..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10"
+                        />
+                    </div>
+                    <div className="flex gap-2">
+                        <Input
+                            type="month"
+                            value={selectedMonth}
+                            onChange={(e) => setSelectedMonth(e.target.value)}
+                            className="w-auto"
+                        />
+                        <Button onClick={applyFilters} className="bg-blue-600 hover:bg-blue-700">
+                            <Filter className="h-4 w-4 mr-2" />
+                            Apply
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Cash Remittance Alert */}
+                {summary.cash_to_remit > 0 && (
+                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border border-yellow-300 dark:border-yellow-800 p-4 rounded-xl">
+                        <div className="flex items-start gap-3">
+                            <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+                            <div className="flex-1">
+                                <h3 className="text-sm font-bold text-yellow-900 dark:text-yellow-200">
+                                    💰 Cash Remittance Required
+                                </h3>
+                                <p className="text-sm text-yellow-800 dark:text-yellow-300 mt-1">
+                                    <strong className="text-base">₱{summary.cash_to_remit.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong> in cash needs to be remitted
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Sales Summary Section */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                            <Receipt className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Sales Summary</h2>
+                    </div>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Gross Sales</p>
+                            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                                PHP {summary.grand_total.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Number of Sales</p>
+                            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                                {summary.transaction_count}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Net Collected</p>
+                            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                                PHP {summary.grand_total.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Average Sale</p>
+                            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                                PHP {averageTransaction.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Sales by Payment Methods */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                        <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                            <CreditCard className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Sales by Payment Methods</h2>
+                    </div>
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                            <div className="flex items-center gap-3">
+                                <Banknote className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                <div>
+                                    <p className="font-semibold text-gray-900 dark:text-white">Cash</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        {payments.filter(p => p.payment_method === 'cash').length} transactions
                                     </p>
                                 </div>
                             </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Month Filter */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
-                    <div className="flex items-center gap-2 mb-4">
-                        <Filter className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                        <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">Select Month</h2>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <Label htmlFor="month" className="text-sm">Month & Year</Label>
-                            <Input
-                                id="month"
-                                type="month"
-                                value={selectedMonth}
-                                onChange={(e) => setSelectedMonth(e.target.value)}
-                                className="mt-1"
-                            />
-                        </div>
-                        <div className="flex items-end">
-                            <Button onClick={applyFilters} className="w-full bg-blue-600 hover:bg-blue-700">
-                                <Filter className="h-4 w-4 mr-2" />
-                                Apply Filters
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Summary Cards */}
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                    <SummaryCard
-                        title="Cash Collected"
-                        value={`₱${summary.total_cash.toFixed(2)}`}
-                        subtitle="To remit"
-                        icon={<Banknote className="h-5 w-5 sm:h-6 sm:w-6" />}
-                        color="green"
-                        highlight
-                    />
-                    <SummaryCard
-                        title="GCash Collected"
-                        value={`₱${summary.total_gcash.toFixed(2)}`}
-                        subtitle="Digital payment"
-                        icon={<Wallet className="h-5 w-5 sm:h-6 sm:w-6" />}
-                        color="blue"
-                    />
-                    <SummaryCard
-                        title="Card Collected"
-                        value={`₱${summary.total_card.toFixed(2)}`}
-                        subtitle="Digital payment"
-                        icon={<CreditCard className="h-5 w-5 sm:h-6 sm:w-6" />}
-                        color="purple"
-                    />
-                </div>
-
-                {/* Total Summary */}
-                <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
-                    <div className="flex items-center justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Receipt className="h-5 w-5 sm:h-6 sm:w-6" />
-                                <p className="text-sm sm:text-base opacity-90">Total Collections</p>
+                            <div className="text-right">
+                                <p className="text-lg font-bold text-gray-900 dark:text-white">
+                                    PHP {summary.total_cash.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                </p>
+                                <p className="text-xs text-green-600 dark:text-green-400 font-medium">
+                                    {summary.grand_total > 0 ? ((summary.total_cash / summary.grand_total) * 100).toFixed(1) : 0}%
+                                </p>
                             </div>
-                            <p className="text-3xl sm:text-4xl md:text-5xl font-bold break-words">
-                                ₱{summary.grand_total.toFixed(2)}
-                            </p>
-                            <p className="text-sm opacity-75 mt-2">
-                                {summary.transaction_count} transaction{summary.transaction_count !== 1 ? 's' : ''}
-                            </p>
                         </div>
-                        <div className="bg-white/20 p-3 sm:p-4 rounded-full flex-shrink-0">
-                            <DollarSign className="h-8 w-8 sm:h-12 sm:w-12" />
+                        <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <div className="flex items-center gap-3">
+                                <Wallet className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                <div>
+                                    <p className="font-semibold text-gray-900 dark:text-white">GCash QR</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        {payments.filter(p => p.payment_method === 'gcash').length} transactions
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-lg font-bold text-gray-900 dark:text-white">
+                                    PHP {summary.total_gcash.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                </p>
+                                <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                                    {summary.grand_total > 0 ? ((summary.total_gcash / summary.grand_total) * 100).toFixed(1) : 0}%
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                            <div className="flex items-center gap-3">
+                                <CreditCard className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                                <div>
+                                    <p className="font-semibold text-gray-900 dark:text-white">Card Payment</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        {payments.filter(p => p.payment_method === 'card').length} transactions
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-lg font-bold text-gray-900 dark:text-white">
+                                    PHP {summary.total_card.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                </p>
+                                <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">
+                                    {summary.grand_total > 0 ? ((summary.total_card / summary.grand_total) * 100).toFixed(1) : 0}%
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Payment Details */}
+                {/* Transaction List */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                    <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-                        <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">Transaction History</h2>
-                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            Detailed breakdown of all your collections
-                        </p>
+                    <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase">
+                                {new Date(selectedMonth + '-01').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase()}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {filteredPayments.length} result{filteredPayments.length !== 1 ? 's' : ''}
+                            </p>
+                        </div>
                     </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-gray-50 dark:bg-gray-700">
-                                <tr>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Receipt</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Plate</th>
-                                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Amount</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Method</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Date/Time</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                {payments.length > 0 ? (
-                                    payments.map((payment) => (
-                                        <tr key={payment.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                            <td className="px-4 py-3 text-sm font-mono text-gray-900 dark:text-white">{payment.receipt_number}</td>
-                                            <td className="px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white">{payment.plate_number}</td>
-                                            <td className="px-4 py-3 text-sm text-right font-semibold text-green-600 dark:text-green-400">
-                                                ₱{Number(payment.amount).toFixed(2)}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm">
-                                                <PaymentMethodBadge method={payment.payment_method} />
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                                                {new Date(payment.paid_at).toLocaleString('en-US', {
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                    year: 'numeric',
-                                                    hour: 'numeric',
-                                                    minute: '2-digit',
-                                                    hour12: true
-                                                })}
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan={5} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
-                                            No transactions found for selected period
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                    <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                        {filteredPayments.length > 0 ? (
+                            filteredPayments.map((payment) => (
+                                <div key={payment.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                                            <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg flex-shrink-0">
+                                                <Receipt className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                                                        {new Date(payment.paid_at).toLocaleTimeString('en-US', { 
+                                                            hour: '2-digit', 
+                                                            minute: '2-digit',
+                                                            hour12: false 
+                                                        })}
+                                                    </p>
+                                                    <span className="text-gray-300 dark:text-gray-600">•</span>
+                                                    <p className="text-xs font-mono text-gray-600 dark:text-gray-400 truncate">
+                                                        {payment.receipt_number}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                        {payment.plate_number}
+                                                    </p>
+                                                    <PaymentMethodBadge method={payment.payment_method} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="text-right flex-shrink-0 ml-4">
+                                            <p className="text-lg font-bold text-gray-900 dark:text-white">
+                                                PHP {Number(payment.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                            </p>
+                                            <p className="text-xs text-green-600 dark:text-green-400 font-medium">
+                                                Succeeded
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="p-12 text-center">
+                                <Receipt className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                                <p className="text-gray-500 dark:text-gray-400">No transactions found</p>
+                                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                                    {searchTerm ? 'Try adjusting your search' : 'No collections for this period'}
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
         </AppLayout>
-    );
-}
-
-function SummaryCard({
-    title,
-    value,
-    subtitle,
-    icon,
-    color,
-    highlight = false,
-}: {
-    title: string;
-    value: string;
-    subtitle: string;
-    icon: React.ReactNode;
-    color: 'green' | 'blue' | 'purple';
-    highlight?: boolean;
-}) {
-    const colorClasses = {
-        green: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
-        blue: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
-        purple: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
-    };
-
-    return (
-        <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border-2 p-3 sm:p-4 ${
-            highlight ? 'border-green-500 dark:border-green-600' : 'border-gray-200 dark:border-gray-700'
-        }`}>
-            <div className={`inline-flex p-2 sm:p-3 rounded-lg ${colorClasses[color]} mb-2 sm:mb-3`}>
-                {icon}
-            </div>
-            <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
-            <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mt-1 break-words">{value}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{subtitle}</p>
-        </div>
     );
 }
 
