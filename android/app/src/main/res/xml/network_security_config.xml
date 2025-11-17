@@ -13,5 +13,6 @@
         <domain includeSubdomains="true">192.168.1.0</domain>
         <domain includeSubdomains="true">192.168.0.0</domain>
         <domain includeSubdomains="true">192.168.0.36</domain>
+         <!-- 192.168.0.36 -->
     </domain-config>
 </network-security-config>
