@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   webDir: 'public',
   server: {
     androidScheme: 'http',
-    // For development with local Laravel server:
+    // For development with local Laravel server: 192.168.0.36
     url: 'http://192.168.0.36:8000',
     cleartext: true
   },
