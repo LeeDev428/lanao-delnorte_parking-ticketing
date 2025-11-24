@@ -62,7 +62,7 @@ class DatabaseSeeder extends Seeder
         RateSetting::firstOrCreate(
             ['rate_type' => 'overnight'],
             [
-                'price' => 100.00,
+                'price' => 2000.00,
                 'duration_minutes' => 720, // 12 hours
                 'description' => 'Overnight parking - ₱100 for 12 hours',
                 'is_active' => true,
