@@ -64,6 +64,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/remittance', [App\Http\Controllers\ReportController::class, 'myRemittance'])->name('remittance');
     });
 
+    // Settings Routes
+    Route::prefix('settings')->name('settings.')->group(function () {
+        Route::get('/printer', function () {
+            return Inertia::render('settings/printer');
+        })->name('printer');
+    });
+
     // Admin routes
     Route::prefix('admin')->middleware('can:admin')->name('admin.')->group(function () {
         Route::get('dashboard', function () {
