@@ -133,6 +133,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         
         // Collections Reports
         Route::get('reports', [App\Http\Controllers\ReportController::class, 'index'])->name('reports');
+        
+        // Export Reports
+        Route::get('reports/export', [App\Http\Controllers\ReportController::class, 'export'])->name('reports.export');
 
         Route::get('users', function () {
             return Inertia::render('admin/users', [
