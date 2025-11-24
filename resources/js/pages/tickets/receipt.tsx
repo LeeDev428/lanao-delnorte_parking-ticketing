@@ -2,7 +2,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Head, Link, router } from '@inertiajs/react';
 import { Check, Home, Bluetooth, Printer, Loader2 } from 'lucide-react';
-import { usePrinter } from '@/hooks/use-printer';
+import { usePrinterContext } from '@/contexts/printer-context';
 import { useState, useEffect, useRef } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import QRCode from 'qrcode';
@@ -32,9 +32,8 @@ interface ReceiptProps {
 
 export default function Receipt({ payment }: ReceiptProps) {
     const amount = Number(payment.amount) || 0;
-    const printer = usePrinter();
+    const printer = usePrinterContext();
     const [showSuccess, setShowSuccess] = useState(false);
-    const [autoConnectAttempted, setAutoConnectAttempted] = useState(false);
     const [qrCodeData, setQrCodeData] = useState<string>('');
     const printedRef = useRef(false);
     
@@ -64,30 +63,16 @@ export default function Receipt({ payment }: ReceiptProps) {
         generateQR();
     }, [payment]);
 
-    // Auto-connect to Bluetooth printer on mount and print once
+    // Auto-print if printer is connected (from global context)
     useEffect(() => {
-        if (printer.isNative && !printer.isConnected && !autoConnectAttempted) {
-            setAutoConnectAttempted(true);
-            handleBluetoothConnect();
-        } else if (printer.isNative && printer.isConnected && !printedRef.current) {
-            // Already connected, just print
+        if (printer.isNative && printer.isConnected && !printedRef.current) {
             printedRef.current = true;
             handleBluetoothPrint();
         }
     }, [printer.isConnected]);
 
-    const handleBluetoothConnect = async () => {
-        try {
-            await printer.connect();
-            setShowSuccess(true);
-            setTimeout(() => setShowSuccess(false), 2000);
-            // Auto-print after successful connection
-            setTimeout(async () => {
-                await handleBluetoothPrint();
-            }, 500);
-        } catch (error) {
-            console.error('Connection error:', error);
-        }
+    const handleBluetoothConnect = () => {
+        router.visit('/settings/printer');
     };
 
     const handleBluetoothPrint = async () => {
@@ -259,20 +244,10 @@ export default function Receipt({ payment }: ReceiptProps) {
                                     {!printer.isConnected ? (
                                         <Button
                                             onClick={handleBluetoothConnect}
-                                            disabled={printer.isConnecting}
                                             className="w-full bg-blue-600 hover:bg-blue-700"
                                         >
-                                            {printer.isConnecting ? (
-                                                <>
-                                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                                    Connecting...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Bluetooth className="h-4 w-4 mr-2" />
-                                                    Connect PT-210
-                                                </>
-                                            )}
+                                            <Bluetooth className="h-4 w-4 mr-2" />
+                                            Go to Printer Settings
                                         </Button>
                                     ) : (
                                         <>
@@ -289,7 +264,7 @@ export default function Receipt({ payment }: ReceiptProps) {
                                                 ) : (
                                                     <>
                                                         <Printer className="h-4 w-4 mr-2" />
-                                                        Print Receipt
+                                                        Print Receipt Again
                                                     </>
                                                 )}
                                             </Button>
