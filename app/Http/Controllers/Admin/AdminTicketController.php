@@ -82,14 +82,27 @@ class AdminTicketController extends Controller
     {
         $today = now()->startOfDay();
 
+        // Get active tickets with duration calculation
+        $activeTickets = Ticket::where('status', 'active')
+            ->latest()
+            ->limit(5)
+            ->get()
+            ->map(function($ticket) {
+                $entryTime = \Carbon\Carbon::parse($ticket->entry_time);
+                $ticket->duration_minutes = $entryTime->diffInMinutes(now());
+                return $ticket;
+            });
+
         $stats = [
             'todayTickets' => Ticket::whereDate('created_at', $today)->count(),
             'todayRevenue' => Payment::whereDate('paid_at', $today)->sum('amount') ?? 0,
-            'activeTickets' => Ticket::whereIn('status', ['active', 'pending_payment'])->count(),
-            'availableSlots' => 200 - Ticket::whereIn('status', ['active', 'pending_payment'])->count(),
+            'activeTickets' => Ticket::where('status', 'active')->count(),
+            'availableSlots' => 200 - Ticket::where('status', 'active')->count(),
             'totalSlots' => 200,
             'paidTickets' => Ticket::whereDate('created_at', $today)->where('status', 'paid')->count(),
             'cancelledTickets' => Ticket::whereDate('created_at', $today)->where('status', 'cancelled')->count(),
+            'totalRevenue' => Payment::sum('amount') ?? 0,
+            'activeTicketsList' => $activeTickets,
         ];
 
         return $stats;
