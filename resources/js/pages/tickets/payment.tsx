@@ -1,8 +1,10 @@
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Head, router } from '@inertiajs/react';
-import { Clock, MapPin, Car, CreditCard, Wallet, Banknote, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Clock, MapPin, Car, CreditCard, Wallet, Banknote, ArrowLeft, CheckCircle, Printer, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
+import { usePrinterContext } from '@/contexts/printer-context';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
     Dialog,
     DialogContent,
@@ -32,6 +34,7 @@ export default function TicketPayment({ ticket }: PaymentProps) {
     const [selectedMethod, setSelectedMethod] = useState<'cash' | 'gcash' | 'card'>('cash');
     const [processing, setProcessing] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const printer = usePrinterContext();
 
     // Calculate time elapsed
     const entryTime = new Date(ticket.entry_time);
@@ -75,6 +78,32 @@ export default function TicketPayment({ ticket }: PaymentProps) {
             <Head title="Ticket Details" />
             
             <div className="w-full px-3 sm:px-6 py-3 sm:py-4">
+                {/* Printer Status Alert */}
+                {printer.isNative && !printer.isConnected && (
+                    <Alert className="mb-4 bg-yellow-50 border-yellow-200">
+                        <AlertCircle className="h-4 w-4 text-yellow-600" />
+                        <AlertDescription className="text-yellow-800">
+                            Printer not connected. Please connect in{' '}
+                            <button
+                                onClick={() => router.visit('/settings/printer')}
+                                className="font-semibold underline"
+                            >
+                                Printer Settings
+                            </button>
+                            {' '}before processing payment.
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                {printer.isNative && printer.isConnected && (
+                    <Alert className="mb-4 bg-green-50 border-green-200">
+                        <Printer className="h-4 w-4 text-green-600" />
+                        <AlertDescription className="text-green-800">
+                            ✓ Printer connected: {printer.deviceName} - Receipt will print automatically
+                        </AlertDescription>
+                    </Alert>
+                )}
+
                 {/* Header */}
                 <div className="bg-blue-600 text-white rounded-t-2xl p-4 sm:p-6">
                     <div className="flex items-center gap-3">
