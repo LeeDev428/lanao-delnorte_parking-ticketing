@@ -75,6 +75,10 @@ export default defineConfig({
             host: '192.168.0.36', // Your network IP
             protocol: 'ws',
         },
+        cors: {
+            origin: '*', // Allow all origins for development
+            credentials: true,
+        },
     },
     esbuild: {
         jsx: 'automatic',
