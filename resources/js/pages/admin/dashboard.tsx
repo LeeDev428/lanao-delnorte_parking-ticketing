@@ -106,7 +106,7 @@ export default function Dashboard({ stats }: DashboardProps) {
                             <div className="space-y-4">
                                 <SummaryRow
                                     label="Total Collected"
-                                    value={`₱ ${(stats?.totalRevenue || 0).toFixed(2)}`}
+                                    value={`₱ ${Number(stats?.totalRevenue || 0).toFixed(2)}`}
                                     icon={<DollarSign className="h-5 w-5 text-green-600" />}
                                 />
                                 <SummaryRow
