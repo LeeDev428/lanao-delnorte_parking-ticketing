@@ -81,6 +81,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         })->name('dashboard');
 
         Route::get('tickets', [App\Http\Controllers\Admin\AdminTicketController::class, 'index'])->name('tickets');
+        Route::get('tickets/export', [App\Http\Controllers\Admin\AdminTicketController::class, 'export'])->name('tickets.export');
         Route::get('tickets/{ticket}', [App\Http\Controllers\Admin\AdminTicketController::class, 'show'])->name('tickets.show');
         Route::patch('tickets/{ticket}', [App\Http\Controllers\Admin\AdminTicketController::class, 'update'])->name('tickets.update');
         Route::delete('tickets/{ticket}', [App\Http\Controllers\Admin\AdminTicketController::class, 'destroy'])->name('tickets.destroy');
