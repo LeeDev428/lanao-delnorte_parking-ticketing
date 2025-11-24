@@ -21,7 +21,7 @@ return new class extends Migration
             $table->timestamp('entry_time');
             $table->timestamp('exit_time')->nullable();
             $table->integer('duration_minutes')->nullable();
-            $table->enum('status', ['active', 'paid', 'cancelled'])->default('active');
+            $table->enum('status', ['active', 'paid', 'cancelled', 'pending_payment'])->default('active');
             $table->foreignId('agent_id')->constrained('users')->onDelete('cascade');
             $table->string('photo_path')->nullable();
             $table->timestamps();
