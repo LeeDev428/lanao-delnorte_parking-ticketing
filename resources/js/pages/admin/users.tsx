@@ -94,7 +94,7 @@ export default function Users({ users }: UsersProps) {
                 </div>
 
                 {/* Users Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {mockUsers.map((user) => (
                         <UserCard
                             key={user.id}
@@ -102,7 +102,7 @@ export default function Users({ users }: UsersProps) {
                             onToggleStatus={toggleUserStatus}
                         />
                     ))}
-                </div>
+                </div> */}
 
                 {/* Users Table (Alternative View) */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
