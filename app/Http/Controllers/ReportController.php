@@ -146,4 +146,57 @@ class ReportController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Export reports (Admin only)
+     */
+    public function export(Request $request)
+    {
+        $type = $request->input('type', 'daily');
+        
+        // Calculate date range based on type
+        switch ($type) {
+            case 'daily':
+                $startDate = Carbon::today();
+                $endDate = Carbon::today();
+                break;
+            case 'weekly':
+                $startDate = Carbon::now()->startOfWeek();
+                $endDate = Carbon::now()->endOfWeek();
+                break;
+            case 'monthly':
+                $startDate = Carbon::now()->startOfMonth();
+                $endDate = Carbon::now()->endOfMonth();
+                break;
+            case 'custom':
+                $startDate = Carbon::parse($request->input('start_date', Carbon::today()));
+                $endDate = Carbon::parse($request->input('end_date', Carbon::today()));
+                break;
+            default:
+                $startDate = Carbon::today();
+                $endDate = Carbon::today();
+        }
+
+        // Get payments data
+        $payments = Payment::with(['ticket', 'collector'])
+            ->whereBetween('paid_at', [
+                $startDate->startOfDay(),
+                $endDate->endOfDay()
+            ])
+            ->orderBy('paid_at', 'desc')
+            ->get();
+
+        // Calculate summary
+        $totalCash = $payments->where('payment_method', 'cash')->sum('amount');
+        $totalGcash = $payments->where('payment_method', 'gcash')->sum('amount');
+        $totalCard = $payments->where('payment_method', 'card')->sum('amount');
+        $grandTotal = $payments->sum('amount');
+
+        // For now, redirect back with success message
+        // In production, this would generate PDF/Excel file
+        return redirect()->back()->with('message', [
+            'type' => 'success',
+            'text' => "Export for {$type} report prepared. Total: ₱" . number_format($grandTotal, 2)
+        ]);
+    }
 }
