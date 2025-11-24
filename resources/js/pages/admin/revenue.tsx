@@ -174,7 +174,7 @@ export default function Revenue({ revenue }: RevenueProps) {
                         </div>
                     </div>
 
-                    {/* Payment Method Chart */}
+                    {/* Payment Method Bar Chart */}
                     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -187,34 +187,66 @@ export default function Revenue({ revenue }: RevenueProps) {
                                     <Chart
                                         options={{
                                             chart: {
-                                                type: 'donut',
+                                                type: 'bar',
                                                 background: 'transparent',
-                                            },
-                                            labels: ['Cash', 'GCash', 'Card'],
-                                            colors: ['#10B981', '#3B82F6', '#A855F7'],
-                                            dataLabels: {
-                                                enabled: true,
-                                                formatter: (val: number) => `${val.toFixed(1)}%`,
-                                            },
-                                            legend: {
-                                                position: 'bottom',
-                                                labels: {
-                                                    colors: '#9CA3AF',
+                                                toolbar: {
+                                                    show: false,
                                                 },
                                             },
                                             plotOptions: {
-                                                pie: {
-                                                    donut: {
-                                                        size: '65%',
-                                                        labels: {
-                                                            show: true,
-                                                            total: {
-                                                                show: true,
-                                                                label: 'Total',
-                                                                formatter: () => `₱${totalRevenue.toLocaleString()}`,
-                                                                color: '#9CA3AF',
-                                                            },
-                                                        },
+                                                bar: {
+                                                    borderRadius: 8,
+                                                    distributed: true,
+                                                    horizontal: false,
+                                                    columnWidth: '60%',
+                                                },
+                                            },
+                                            colors: ['#10B981', '#3B82F6', '#A855F7'],
+                                            dataLabels: {
+                                                enabled: true,
+                                                formatter: (val: number) => `₱${val.toLocaleString()}`,
+                                                style: {
+                                                    fontSize: '12px',
+                                                    colors: ['#fff'],
+                                                },
+                                            },
+                                            legend: {
+                                                show: false,
+                                            },
+                                            xaxis: {
+                                                categories: ['Cash', 'GCash', 'Card'],
+                                                labels: {
+                                                    style: {
+                                                        colors: '#9CA3AF',
+                                                        fontSize: '12px',
+                                                    },
+                                                },
+                                                axisBorder: {
+                                                    show: false,
+                                                },
+                                                axisTicks: {
+                                                    show: false,
+                                                },
+                                            },
+                                            yaxis: {
+                                                labels: {
+                                                    style: {
+                                                        colors: '#9CA3AF',
+                                                    },
+                                                    formatter: (value: number) => `₱${value.toFixed(0)}`,
+                                                },
+                                            },
+                                            grid: {
+                                                borderColor: '#374151',
+                                                strokeDashArray: 4,
+                                                yaxis: {
+                                                    lines: {
+                                                        show: true,
+                                                    },
+                                                },
+                                                xaxis: {
+                                                    lines: {
+                                                        show: false,
                                                     },
                                                 },
                                             },
@@ -226,67 +258,22 @@ export default function Revenue({ revenue }: RevenueProps) {
                                             },
                                         }}
                                         series={[
-                                            revenueData.byPaymentMethod.cash,
-                                            revenueData.byPaymentMethod.gcash,
-                                            revenueData.byPaymentMethod.card,
+                                            {
+                                                name: 'Revenue',
+                                                data: [
+                                                    revenueData.byPaymentMethod.cash,
+                                                    revenueData.byPaymentMethod.gcash,
+                                                    revenueData.byPaymentMethod.card,
+                                                ],
+                                            },
                                         ]}
-                                        type="donut"
+                                        type="bar"
                                         height="100%"
                                     />
                                 )}
                             </div>
                         </div>
                     </div>
-                </div>
-
-                    {/* Quick Actions */}
-                    {/* <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                Export Reports
-                            </h3>
-                        </div>
-                        <div className="p-6">
-                            <div className="space-y-3">
-                                <button 
-                                    onClick={() => handleExportReport('daily')}
-                                    className="w-full flex items-center justify-between px-4 py-3 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                                >
-                                    <span className="text-blue-700 dark:text-blue-300 font-medium">
-                                        Daily Report
-                                    </span>
-                                    <Download className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                                </button>
-                                <button 
-                                    onClick={() => handleExportReport('weekly')}
-                                    className="w-full flex items-center justify-between px-4 py-3 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors"
-                                >
-                                    <span className="text-green-700 dark:text-green-300 font-medium">
-                                        Weekly Report
-                                    </span>
-                                    <Download className="h-5 w-5 text-green-600 dark:text-green-400" />
-                                </button>
-                                <button 
-                                    onClick={() => handleExportReport('monthly')}
-                                    className="w-full flex items-center justify-between px-4 py-3 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
-                                >
-                                    <span className="text-purple-700 dark:text-purple-300 font-medium">
-                                        Monthly Report
-                                    </span>
-                                    <Download className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                                </button>
-                                <button 
-                                    onClick={() => handleExportReport('custom')}
-                                    className="w-full flex items-center justify-between px-4 py-3 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
-                                >
-                                    <span className="text-indigo-700 dark:text-indigo-300 font-medium">
-                                        Custom Range
-                                    </span>
-                                    <Download className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-                                </button>
-                            </div>
-                        </div>
-                    </div> */}
                 </div>
 
                 {/* Recent Transactions */}
