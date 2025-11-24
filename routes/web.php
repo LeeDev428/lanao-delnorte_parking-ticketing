@@ -152,6 +152,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'role' => 'required|in:admin,agent',
             ]);
 
+            $validated['password'] = \Illuminate\Support\Facades\Hash::make($validated['password']);
+
             \App\Models\User::create($validated);
 
             return redirect()->route('admin.users');
