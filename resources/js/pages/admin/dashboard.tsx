@@ -9,7 +9,7 @@ import {
     CheckCircle,
     XCircle,
 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Chart from 'react-apexcharts';
 
 interface DashboardStats {
@@ -39,25 +39,46 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ stats }: DashboardProps) {
-    // Generate mock revenue data for the chart (last 7 days)
+    const [revenueFilter, setRevenueFilter] = useState<'7days' | '30days' | '90days'>('7days');
+
+    // Generate revenue data based on selected filter
     const chartData = useMemo(() => {
-        if (stats?.revenueData) {
+        if (stats?.revenueData && revenueFilter === '7days') {
             return stats.revenueData;
         }
         
-        // Default mock data
+        // Generate data based on filter
         const dates: string[] = [];
         const amounts: number[] = [];
+        const days = revenueFilter === '7days' ? 7 : revenueFilter === '30days' ? 30 : 90;
         
-        for (let i = 6; i >= 0; i--) {
+        for (let i = days - 1; i >= 0; i--) {
             const date = new Date();
             date.setDate(date.getDate() - i);
-            dates.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-            amounts.push(Math.floor(Math.random() * 5000) + 2000);
+            
+            if (days === 7) {
+                dates.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+            } else if (days === 30) {
+                // Show every 3 days for 30 days
+                if (i % 3 === 0) {
+                    dates.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                    amounts.push(Math.floor(Math.random() * 5000) + 2000);
+                }
+            } else {
+                // Show every 7 days for 90 days
+                if (i % 7 === 0) {
+                    dates.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                    amounts.push(Math.floor(Math.random() * 5000) + 2000);
+                }
+            }
+            
+            if (days === 7) {
+                amounts.push(Math.floor(Math.random() * 5000) + 2000);
+            }
         }
         
         return { dates, amounts };
-    }, [stats]);
+    }, [stats, revenueFilter]);
 
     const chartOptions = {
         chart: {
@@ -224,10 +245,19 @@ export default function Dashboard({ stats }: DashboardProps) {
 
                 {/* Revenue Overview Chart */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                    <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                             Revenue Overview
                         </h3>
+                        <select
+                            value={revenueFilter}
+                            onChange={(e) => setRevenueFilter(e.target.value as '7days' | '30days' | '90days')}
+                            className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                            <option value="7days">Last 7 Days</option>
+                            <option value="30days">Last 30 Days</option>
+                            <option value="90days">Last 90 Days</option>
+                        </select>
                     </div>
                     <div className="p-6">
                         <div className="h-72">
