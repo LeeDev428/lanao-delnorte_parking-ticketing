@@ -123,7 +123,7 @@ export default function Dashboard({ stats, activeTickets }: DashboardProps) {
                                         <div className="text-right">
                                             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Duration</p>
                                             <p className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white">
-                                                {ticket.duration_minutes} min
+                                                {Math.floor(ticket.duration_minutes)} min
                                             </p>
                                         </div>
                                         <span className="px-2 sm:px-3 py-1 text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full whitespace-nowrap">
