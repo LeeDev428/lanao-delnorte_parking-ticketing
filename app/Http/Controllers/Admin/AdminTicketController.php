@@ -17,7 +17,7 @@ class AdminTicketController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Ticket::with(['agent', 'payment']);
+        $query = Ticket::with(['agent', 'payment', 'rateSetting']);
 
         // Filter by status
         if ($request->has('status') && $request->status !== 'all') {
@@ -33,6 +33,22 @@ class AdminTicketController extends Controller
         }
 
         $tickets = $query->latest()->paginate(20);
+
+        // Add duration_minutes calculation for each ticket
+        $tickets->getCollection()->transform(function($ticket) {
+            if ($ticket->rate_type === 'hourly' && $ticket->entry_time) {
+                // For hourly: calculate time elapsed
+                $entryTime = \Carbon\Carbon::parse($ticket->entry_time);
+                $exitTime = $ticket->exit_time ? \Carbon\Carbon::parse($ticket->exit_time) : now();
+                $ticket->duration_minutes = $entryTime->diffInMinutes($exitTime);
+            } elseif ($ticket->rateSetting && $ticket->rateSetting->duration_minutes) {
+                // For flat/overnight: use rate setting duration
+                $ticket->duration_minutes = $ticket->rateSetting->duration_minutes;
+            } else {
+                $ticket->duration_minutes = null;
+            }
+            return $ticket;
+        });
 
         return Inertia::render('admin/tickets', [
             'tickets' => $tickets,
