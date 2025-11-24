@@ -206,7 +206,7 @@ export default function Reports({ payments, summary, agentSummary, agents, filte
                                             <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{agent.agent_name}</td>
                                             <td className="px-4 py-3 text-sm text-right text-gray-600 dark:text-gray-400">{agent.transaction_count}</td>
                                             <td className="px-4 py-3 text-sm text-right font-semibold text-green-600 dark:text-green-400">
-                                                ₱{agent.total_amount.toFixed(2)}
+                                                ₱{Number(agent.total_amount || 0).toFixed(2)}
                                             </td>
                                         </tr>
                                     ))}
