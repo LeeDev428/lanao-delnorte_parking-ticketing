@@ -41,8 +41,8 @@ interface DashboardProps {
 export default function Dashboard({ stats }: DashboardProps) {
     // Get initial filter from URL or default to 7days
     const urlParams = new URLSearchParams(window.location.search);
-    const initialFilter = (urlParams.get('filter') || '7days') as '7days' | '30days' | '90days' | '12months' | '36months';
-    const [revenueFilter, setRevenueFilter] = useState<'7days' | '30days' | '90days' | '12months' | '36months'>(initialFilter);
+    const initialFilter = (urlParams.get('filter') || '7days') as '7days' | '30days' | '90days';
+    const [revenueFilter, setRevenueFilter] = useState<'7days' | '30days' | '90days'>(initialFilter);
 
     // Use real revenue data from backend, no mock data
     const chartData = useMemo(() => {
@@ -55,7 +55,7 @@ export default function Dashboard({ stats }: DashboardProps) {
     }, [stats]);
 
     // Update filter - this will trigger a page reload with new data
-    const handleFilterChange = (newFilter: '7days' | '30days' | '90days' | '12months' | '36months') => {
+    const handleFilterChange = (newFilter: '7days' | '30days' | '90days') => {
         setRevenueFilter(newFilter);
         // Reload page with filter parameter
         window.location.href = `/admin/dashboard?filter=${newFilter}`;
@@ -232,14 +232,12 @@ export default function Dashboard({ stats }: DashboardProps) {
                         </h3>
                         <select
                             value={revenueFilter}
-                            onChange={(e) => handleFilterChange(e.target.value as '7days' | '30days' | '90days' | '12months' | '36months')}
+                            onChange={(e) => handleFilterChange(e.target.value as '7days' | '30days' | '90days')}
                             className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="7days">Last 7 Days</option>
                             <option value="30days">Last 30 Days</option>
                             <option value="90days">Last 90 Days</option>
-                            <option value="12months">Last 12 Months</option>
-                            <option value="36months">Last 36 Months</option>
                         </select>
                     </div>
                     <div className="p-6">
