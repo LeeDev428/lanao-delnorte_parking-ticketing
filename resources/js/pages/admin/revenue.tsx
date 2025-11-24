@@ -8,6 +8,8 @@ import {
     CreditCard,
     Banknote,
 } from 'lucide-react';
+import { useMemo } from 'react';
+import Chart from 'react-apexcharts';
 
 interface RevenueData {
     today: number;
@@ -333,12 +335,20 @@ function PaymentMethodRow({
     amount,
     icon,
     percentage,
+    color = 'blue',
 }: {
     method: string;
     amount: number;
     icon: React.ReactNode;
     percentage: number;
+    color?: string;
 }) {
+    const colorClasses: Record<string, string> = {
+        blue: 'bg-blue-600',
+        green: 'bg-green-600',
+        purple: 'bg-purple-600',
+    };
+
     return (
         <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -352,7 +362,7 @@ function PaymentMethodRow({
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
                 <div
-                    className="bg-blue-600 dark:bg-blue-500 h-full rounded-full transition-all duration-300"
+                    className={`${colorClasses[color]} dark:${colorClasses[color]} h-full rounded-full transition-all duration-300`}
                     style={{ width: `${percentage}%` }}
                 />
             </div>
