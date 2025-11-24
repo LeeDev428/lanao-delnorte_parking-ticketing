@@ -8,6 +8,9 @@ import ReceiptPrinterEncoder from '@point-of-sale/receipt-printer-encoder';
 export class ThermalPrinterService {
     private device: BleDevice | null = null;
     private isConnected: boolean = false;
+    private keepAliveInterval: NodeJS.Timeout | null = null;
+    private reconnectAttempts: number = 0;
+    private maxReconnectAttempts: number = 3;
     
     // Common UUIDs for Bluetooth thermal printers (PT-210 compatible)
     private readonly SERVICE_UUID = '000018f0-0000-1000-8000-00805f9b34fb';
@@ -68,11 +71,17 @@ export class ThermalPrinterService {
             await BleClient.connect(this.device.deviceId, (deviceId) => {
                 console.log('🔌 Disconnected from:', deviceId);
                 this.isConnected = false;
-                this.device = null;
+                this.stopKeepAlive();
+                // Attempt auto-reconnect
+                this.attemptReconnect();
             });
 
             this.isConnected = true;
+            this.reconnectAttempts = 0;
             console.log('✅ Connected to printer:', this.device.name || this.device.deviceId);
+            
+            // Start keepalive to maintain connection
+            this.startKeepAlive();
 
         } catch (error: any) {
             console.error('❌ Connection failed:', error);
@@ -209,9 +218,102 @@ export class ThermalPrinterService {
     }
 
     /**
+     * Start keepalive ping to maintain connection
+     */
+    private startKeepAlive(): void {
+        // Stop any existing keepalive
+        this.stopKeepAlive();
+        
+        // Ping every 30 seconds to keep connection alive
+        this.keepAliveInterval = setInterval(async () => {
+            if (this.isConnected && this.device) {
+                try {
+                    // Send empty status check command
+                    const encoder = new ReceiptPrinterEncoder({
+                        language: 'esc-pos',
+                        columns: 32
+                    });
+                    const pingData = encoder.initialize().encode();
+                    const dataView = new DataView(pingData.buffer);
+                    
+                    await BleClient.write(
+                        this.device.deviceId,
+                        this.SERVICE_UUID,
+                        this.WRITE_UUID,
+                        dataView
+                    );
+                    console.log('📡 Keepalive ping sent');
+                } catch (error) {
+                    console.error('❌ Keepalive failed:', error);
+                    this.isConnected = false;
+                    this.stopKeepAlive();
+                    this.attemptReconnect();
+                }
+            }
+        }, 30000); // 30 seconds
+        
+        console.log('🔄 Keepalive started');
+    }
+
+    /**
+     * Stop keepalive
+     */
+    private stopKeepAlive(): void {
+        if (this.keepAliveInterval) {
+            clearInterval(this.keepAliveInterval);
+            this.keepAliveInterval = null;
+            console.log('🛑 Keepalive stopped');
+        }
+    }
+
+    /**
+     * Attempt to reconnect automatically
+     */
+    private async attemptReconnect(): Promise<void> {
+        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+            console.error('❌ Max reconnection attempts reached');
+            return;
+        }
+
+        if (!this.device) {
+            console.log('⚠️ No device to reconnect to');
+            return;
+        }
+
+        this.reconnectAttempts++;
+        console.log(`🔄 Attempting reconnect ${this.reconnectAttempts}/${this.maxReconnectAttempts}...`);
+
+        try {
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2s before reconnecting
+            
+            await BleClient.connect(this.device.deviceId, (deviceId) => {
+                console.log('🔌 Disconnected from:', deviceId);
+                this.isConnected = false;
+                this.stopKeepAlive();
+                this.attemptReconnect();
+            });
+
+            this.isConnected = true;
+            this.reconnectAttempts = 0;
+            console.log('✅ Reconnected successfully!');
+            this.startKeepAlive();
+            
+        } catch (error) {
+            console.error(`❌ Reconnect attempt ${this.reconnectAttempts} failed:`, error);
+            // Try again if under max attempts
+            if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                await this.attemptReconnect();
+            }
+        }
+    }
+
+    /**
      * Disconnect from printer
      */
     async disconnect(): Promise<void> {
+        // Stop keepalive first
+        this.stopKeepAlive();
+        
         if (this.device) {
             try {
                 await BleClient.disconnect(this.device.deviceId);
@@ -221,6 +323,7 @@ export class ThermalPrinterService {
             } finally {
                 this.isConnected = false;
                 this.device = null;
+                this.reconnectAttempts = 0;
             }
         }
     }
