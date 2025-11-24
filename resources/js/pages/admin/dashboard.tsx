@@ -19,6 +19,13 @@ interface DashboardStats {
     todayRevenue: number;
     paidTickets: number;
     cancelledTickets: number;
+    activeTicketsList: Array<{
+        id: number;
+        ticket_id: string;
+        plate_number: string;
+        duration_minutes: number;
+        status: string;
+    }>;
 }
 
 interface DashboardProps {
@@ -35,27 +42,25 @@ export default function Dashboard({ stats }: DashboardProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <StatCard
                         title="Today's Tickets"
-                        value={stats?.todayTickets || 124}
+                        value={stats?.todayTickets || 0}
                         icon={<Ticket className="h-6 w-6" />}
                         color="blue"
-                        trend="+12%"
                     />
                     <StatCard
                         title="Total Revenue"
-                        value={`₱ ${stats?.todayRevenue || 940}`}
+                        value={`₱ ${stats?.todayRevenue || 0}`}
                         icon={<DollarSign className="h-6 w-6" />}
                         color="green"
-                        trend="+8%"
                     />
                     <StatCard
                         title="Active Tickets"
-                        value={stats?.activeTickets || 3}
+                        value={stats?.activeTickets || 0}
                         icon={<Clock className="h-6 w-6" />}
                         color="yellow"
                     />
                     <StatCard
                         title="Available Slots"
-                        value={`${stats?.availableSlots || 37}/${stats?.totalSlots || 200}`}
+                        value={`${stats?.availableSlots || 0}/${stats?.totalSlots || 200}`}
                         icon={<Users className="h-6 w-6" />}
                         color="purple"
                     />
@@ -72,21 +77,20 @@ export default function Dashboard({ stats }: DashboardProps) {
                         </div>
                         <div className="p-6">
                             <div className="space-y-4">
-                                <ActiveTicketRow
-                                    plate="ABC-1234"
-                                    duration="28 min"
-                                    status="Active"
-                                />
-                                <ActiveTicketRow
-                                    plate="XY2-5678"
-                                    duration="15 min"
-                                    status="Active"
-                                />
-                                <ActiveTicketRow
-                                    plate="DEF-9012"
-                                    duration="40 min"
-                                    status="Active"
-                                />
+                                {stats?.activeTicketsList && stats.activeTicketsList.length > 0 ? (
+                                    stats.activeTicketsList.map((ticket) => (
+                                        <ActiveTicketRow
+                                            key={ticket.id}
+                                            plate={ticket.plate_number}
+                                            duration={`${Math.floor(ticket.duration_minutes)} min`}
+                                            status="Active"
+                                        />
+                                    ))
+                                ) : (
+                                    <p className="text-center text-gray-500 dark:text-gray-400 py-4">
+                                        No active tickets
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -102,12 +106,12 @@ export default function Dashboard({ stats }: DashboardProps) {
                             <div className="space-y-4">
                                 <SummaryRow
                                     label="Total Collected"
-                                    value={`₱ ${stats?.totalRevenue || 940}.00`}
+                                    value={`₱ ${(stats?.totalRevenue || 0).toFixed(2)}`}
                                     icon={<DollarSign className="h-5 w-5 text-green-600" />}
                                 />
                                 <SummaryRow
                                     label="Paid Tickets"
-                                    value={stats?.paidTickets || 121}
+                                    value={stats?.paidTickets || 0}
                                     icon={<CheckCircle className="h-5 w-5 text-blue-600" />}
                                 />
                                 <SummaryRow
@@ -146,13 +150,11 @@ function StatCard({
     value,
     icon,
     color,
-    trend,
 }: {
     title: string;
     value: string | number;
     icon: React.ReactNode;
     color: 'blue' | 'green' | 'yellow' | 'purple';
-    trend?: string;
 }) {
     const colorClasses = {
         blue: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
@@ -165,11 +167,6 @@ function StatCard({
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between mb-4">
                 <div className={`p-3 rounded-lg ${colorClasses[color]}`}>{icon}</div>
-                {trend && (
-                    <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                        {trend}
-                    </span>
-                )}
             </div>
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{value}</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">{title}</p>
