@@ -74,7 +74,7 @@ export default function TicketPayment({ ticket }: PaymentProps) {
         ]}>
             <Head title="Ticket Details" />
             
-            <div className="w-full max-w-[95%] mx-auto p-3 sm:p-4">
+            <div className="w-full px-3 sm:px-6 py-3 sm:py-4">
                 {/* Header */}
                 <div className="bg-blue-600 text-white rounded-t-2xl p-4 sm:p-6">
                     <div className="flex items-center gap-3">
