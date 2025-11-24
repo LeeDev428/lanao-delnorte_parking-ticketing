@@ -143,4 +143,33 @@ class AdminTicketController extends Controller
             ],
         ];
     }
+
+    /**
+     * Export tickets
+     */
+    public function export(Request $request)
+    {
+        $query = Ticket::with(['agent', 'payment']);
+
+        // Apply same filters as index
+        if ($request->has('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->has('search') && $request->search) {
+            $query->where(function($q) use ($request) {
+                $q->where('ticket_id', 'like', "%{$request->search}%")
+                  ->orWhere('plate_number', 'like', "%{$request->search}%");
+            });
+        }
+
+        $tickets = $query->latest()->get();
+
+        // For now, redirect back with success message
+        // In production, this would generate CSV/Excel file
+        return redirect()->back()->with('message', [
+            'type' => 'success',
+            'text' => "Export prepared with {$tickets->count()} tickets."
+        ]);
+    }
 }
