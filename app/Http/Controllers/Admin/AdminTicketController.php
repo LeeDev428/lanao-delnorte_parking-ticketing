@@ -109,6 +109,18 @@ class AdminTicketController extends Controller
                 return $ticket;
             });
 
+        // Get revenue data for the last 7 days
+        $revenueData = [
+            'dates' => [],
+            'amounts' => []
+        ];
+        
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $revenueData['dates'][] = $date->format('M d');
+            $revenueData['amounts'][] = (float) Payment::whereDate('paid_at', $date)->sum('amount') ?: 0;
+        }
+
         $stats = [
             'todayTickets' => Ticket::whereDate('created_at', $today)->count(),
             'todayRevenue' => Payment::whereDate('paid_at', $today)->sum('amount') ?? 0,
@@ -119,6 +131,7 @@ class AdminTicketController extends Controller
             'cancelledTickets' => Ticket::whereDate('created_at', $today)->where('status', 'cancelled')->count(),
             'totalRevenue' => Payment::sum('amount') ?? 0,
             'activeTicketsList' => $activeTickets,
+            'revenueData' => $revenueData,
         ];
 
         return $stats;
