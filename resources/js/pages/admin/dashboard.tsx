@@ -39,7 +39,10 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ stats }: DashboardProps) {
-    const [revenueFilter, setRevenueFilter] = useState<'7days' | '30days' | '90days' | '12months' | '36months'>('7days');
+    // Get initial filter from URL or default to 7days
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialFilter = (urlParams.get('filter') || '7days') as '7days' | '30days' | '90days' | '12months' | '36months';
+    const [revenueFilter, setRevenueFilter] = useState<'7days' | '30days' | '90days' | '12months' | '36months'>(initialFilter);
 
     // Use real revenue data from backend, no mock data
     const chartData = useMemo(() => {
@@ -229,7 +232,7 @@ export default function Dashboard({ stats }: DashboardProps) {
                         </h3>
                         <select
                             value={revenueFilter}
-                            onChange={(e) => setRevenueFilter(e.target.value as '7days' | '30days' | '90days' | '12months' | '36months')}
+                            onChange={(e) => handleFilterChange(e.target.value as '7days' | '30days' | '90days' | '12months' | '36months')}
                             className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="7days">Last 7 Days</option>
