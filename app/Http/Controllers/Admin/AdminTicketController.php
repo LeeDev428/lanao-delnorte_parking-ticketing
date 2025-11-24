@@ -94,7 +94,7 @@ class AdminTicketController extends Controller
     /**
      * Dashboard stats
      */
-    public function dashboardStats()
+    public function dashboardStats($filter = '7days')
     {
         $today = now()->startOfDay();
 
@@ -109,16 +109,78 @@ class AdminTicketController extends Controller
                 return $ticket;
             });
 
-        // Get revenue data for the last 7 days
+        // Get revenue data based on filter from payments table (paid_at column)
         $revenueData = [
             'dates' => [],
             'amounts' => []
         ];
         
-        for ($i = 6; $i >= 0; $i--) {
-            $date = now()->subDays($i);
-            $revenueData['dates'][] = $date->format('M d');
-            $revenueData['amounts'][] = (float) Payment::whereDate('paid_at', $date)->sum('amount') ?: 0;
+        switch ($filter) {
+            case '7days':
+                // Last 7 days - daily data
+                for ($i = 6; $i >= 0; $i--) {
+                    $date = now()->subDays($i);
+                    $revenueData['dates'][] = $date->format('M d');
+                    $revenueData['amounts'][] = (float) Payment::whereDate('paid_at', $date)->sum('amount') ?: 0;
+                }
+                break;
+                
+            case '30days':
+                // Last 30 days - every 3 days
+                for ($i = 27; $i >= 0; $i -= 3) {
+                    $date = now()->subDays($i);
+                    $revenueData['dates'][] = $date->format('M d');
+                    // Sum revenue for 3-day period
+                    $amount = Payment::whereBetween('paid_at', [
+                        $date->copy()->startOfDay(),
+                        $date->copy()->addDays(2)->endOfDay()
+                    ])->sum('amount');
+                    $revenueData['amounts'][] = (float) $amount ?: 0;
+                }
+                break;
+                
+            case '90days':
+                // Last 90 days - weekly data
+                for ($i = 84; $i >= 0; $i -= 7) {
+                    $date = now()->subDays($i);
+                    $revenueData['dates'][] = $date->format('M d');
+                    // Sum revenue for 7-day period
+                    $amount = Payment::whereBetween('paid_at', [
+                        $date->copy()->startOfDay(),
+                        $date->copy()->addDays(6)->endOfDay()
+                    ])->sum('amount');
+                    $revenueData['amounts'][] = (float) $amount ?: 0;
+                }
+                break;
+                
+            case '12months':
+                // Last 12 months - monthly data
+                for ($i = 11; $i >= 0; $i--) {
+                    $date = now()->subMonths($i);
+                    $revenueData['dates'][] = $date->format('M y');
+                    // Sum revenue for entire month
+                    $amount = Payment::whereYear('paid_at', $date->year)
+                        ->whereMonth('paid_at', $date->month)
+                        ->sum('amount');
+                    $revenueData['amounts'][] = (float) $amount ?: 0;
+                }
+                break;
+                
+            case '36months':
+                // Last 36 months - quarterly data (every 3 months)
+                for ($i = 33; $i >= 0; $i -= 3) {
+                    $date = now()->subMonths($i);
+                    $revenueData['dates'][] = $date->format('M y');
+                    // Sum revenue for 3-month period
+                    $startDate = $date->copy()->startOfMonth();
+                    $endDate = $date->copy()->addMonths(2)->endOfMonth();
+                    $amount = Payment::whereBetween('paid_at', [
+                        $startDate,
+                        $endDate
+                    ])->sum('amount');
+                    $revenueData['amounts'][] = (float) $amount ?: 0;
+                }
+                break;
         }
 
         $stats = [
