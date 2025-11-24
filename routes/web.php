@@ -14,18 +14,34 @@ Route::middleware(['auth', 'verified'])->group(function () {
         $today = now()->startOfDay();
         $user = auth()->user();
 
+        // Real dynamic stats
         $stats = [
-            'todayTickets' => \App\Models\Ticket::where('agent_id', $user->id)->whereDate('created_at', $today)->count(),
-            'totalCollected' => \App\Models\Payment::where('collected_by', $user->id)->whereDate('paid_at', $today)->sum('amount'),
-            'activeTickets' => \App\Models\Ticket::where('agent_id', $user->id)->where('status', 'active')->count(),
-            'availableSlots' => 200 - \App\Models\Ticket::where('status', 'active')->count(),
+            'todayTickets' => \App\Models\Ticket::where('agent_id', $user->id)
+                ->whereDate('created_at', $today)
+                ->count(),
+            'totalCollected' => \App\Models\Payment::where('collected_by', $user->id)
+                ->whereDate('paid_at', $today)
+                ->sum('amount') ?? 0,
+            'activeTickets' => \App\Models\Ticket::where('agent_id', $user->id)
+                ->whereIn('status', ['active', 'pending_payment'])
+                ->count(),
+            'availableSlots' => 200 - \App\Models\Ticket::whereIn('status', ['active', 'pending_payment'])->count(),
         ];
 
+        // Show active hourly tickets (waiting for payment on exit)
         $activeTickets = \App\Models\Ticket::where('agent_id', $user->id)
             ->where('status', 'active')
+            ->where('rate_type', 'hourly')
             ->latest()
-            ->limit(3)
-            ->get();
+            ->limit(5)
+            ->get()
+            ->map(function($ticket) {
+                // Calculate duration in minutes
+                $entryTime = \Carbon\Carbon::parse($ticket->entry_time);
+                $now = \Carbon\Carbon::now();
+                $ticket->duration_minutes = $entryTime->diffInMinutes($now);
+                return $ticket;
+            });
 
         return Inertia::render('dashboard', [
             'stats' => $stats,
