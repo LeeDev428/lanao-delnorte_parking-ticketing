@@ -9,6 +9,8 @@ import {
     CheckCircle,
     XCircle,
 } from 'lucide-react';
+import { useMemo } from 'react';
+import Chart from 'react-apexcharts';
 
 interface DashboardStats {
     todayTickets: number;
@@ -26,6 +28,10 @@ interface DashboardStats {
         duration_minutes: number;
         status: string;
     }>;
+    revenueData?: {
+        dates: string[];
+        amounts: number[];
+    };
 }
 
 interface DashboardProps {
@@ -33,6 +39,98 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ stats }: DashboardProps) {
+    // Generate mock revenue data for the chart (last 7 days)
+    const chartData = useMemo(() => {
+        if (stats?.revenueData) {
+            return stats.revenueData;
+        }
+        
+        // Default mock data
+        const dates: string[] = [];
+        const amounts: number[] = [];
+        
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            dates.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+            amounts.push(Math.floor(Math.random() * 5000) + 2000);
+        }
+        
+        return { dates, amounts };
+    }, [stats]);
+
+    const chartOptions = {
+        chart: {
+            type: 'area' as const,
+            height: 280,
+            toolbar: {
+                show: false,
+            },
+            background: 'transparent',
+        },
+        colors: ['#3B82F6'],
+        dataLabels: {
+            enabled: false,
+        },
+        stroke: {
+            curve: 'smooth' as const,
+            width: 3,
+        },
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shadeIntensity: 1,
+                opacityFrom: 0.4,
+                opacityTo: 0.1,
+                stops: [0, 90, 100],
+            },
+        },
+        xaxis: {
+            categories: chartData.dates,
+            labels: {
+                style: {
+                    colors: '#9CA3AF',
+                },
+            },
+            axisBorder: {
+                show: false,
+            },
+            axisTicks: {
+                show: false,
+            },
+        },
+        yaxis: {
+            labels: {
+                style: {
+                    colors: '#9CA3AF',
+                },
+                formatter: (value: number) => `₱${value.toFixed(0)}`,
+            },
+        },
+        grid: {
+            borderColor: '#374151',
+            strokeDashArray: 4,
+            yaxis: {
+                lines: {
+                    show: true,
+                },
+            },
+        },
+        tooltip: {
+            theme: 'dark',
+            y: {
+                formatter: (value: number) => `₱${value.toFixed(2)}`,
+            },
+        },
+    };
+
+    const chartSeries = [
+        {
+            name: 'Revenue',
+            data: chartData.amounts,
+        },
+    ];
+
     return (
         <AdminLayout title="Dashboard">
             <Head title="Admin Dashboard" />
@@ -124,7 +222,7 @@ export default function Dashboard({ stats }: DashboardProps) {
                     </div>
                 </div>
 
-                {/* Revenue Chart Placeholder */}
+                {/* Revenue Overview Chart */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                     <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -132,11 +230,15 @@ export default function Dashboard({ stats }: DashboardProps) {
                         </h3>
                     </div>
                     <div className="p-6">
-                        <div className="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
-                            <div className="text-center">
-                                <TrendingUp className="h-12 w-12 mx-auto mb-2 text-blue-600" />
-                                <p>Chart coming soon...</p>
-                            </div>
+                        <div className="h-72">
+                            {typeof window !== 'undefined' && (
+                                <Chart
+                                    options={chartOptions}
+                                    series={chartSeries}
+                                    type="area"
+                                    height="100%"
+                                />
+                            )}
                         </div>
                     </div>
                 </div>
