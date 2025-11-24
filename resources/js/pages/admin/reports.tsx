@@ -1,5 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
-import AdminLayout from '@/layouts/admin-layout';
+import AdminLayout from '@/layouts/admin/admin-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
