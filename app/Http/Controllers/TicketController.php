@@ -81,11 +81,9 @@ class TicketController extends Controller
             $photoPath = $request->file('photo')->store('plates', 'public');
         }
 
-        // Create ticket with pending_payment status for flat_rate/overnight
-        // Only create as active for hourly
-        $status = in_array($validated['rate_type'], ['flat_rate', 'overnight']) 
-            ? 'pending_payment' 
-            : 'active';
+        // Hourly: Save as 'active' (pay on exit)
+        // Flat/Overnight: Save as 'pending_payment' (must pay before entry)
+        $status = $validated['rate_type'] === 'hourly' ? 'active' : 'pending_payment';
 
         $ticket = Ticket::create([
             'ticket_id' => Ticket::generateTicketId(),
@@ -99,13 +97,13 @@ class TicketController extends Controller
             'photo_path' => $photoPath,
         ]);
 
-        // If flat_rate or overnight, redirect to payment
-        if (in_array($validated['rate_type'], ['flat_rate', 'overnight'])) {
-            return redirect()->route('tickets.payment', $ticket->id);
+        // Hourly: Redirect to dashboard (no payment needed now)
+        // Flat/Overnight: Redirect to payment page
+        if ($validated['rate_type'] === 'hourly') {
+            return redirect()->route('dashboard')->with('success', 'Hourly ticket generated! Vehicle can park now.');
         }
-
-        // For hourly, just show success
-        return redirect()->route('dashboard')->with('success', 'Ticket generated successfully!');
+        
+        return redirect()->route('tickets.payment', $ticket->id);
     }
 
     /**
@@ -130,9 +128,16 @@ class TicketController extends Controller
         // Calculate final amount
         if ($ticket->rate_type === 'hourly') {
             $ticket->exit_time = now();
-            $ticket->duration_minutes = $ticket->calculateDuration();
-            $rateSetting = RateSetting::where('rate_type', 'hourly')->first();
-            $amount = $rateSetting->calculatePrice($ticket->duration_minutes);
+            $entryTime = \Carbon\Carbon::parse($ticket->entry_time);
+            $exitTime = \Carbon\Carbon::parse($ticket->exit_time);
+            $durationMinutes = $entryTime->diffInMinutes($exitTime);
+            $ticket->duration_minutes = $durationMinutes;
+            
+            // Calculate hours (round up) - e.g., 61 min = 2 hours = ₱80
+            $hours = ceil($durationMinutes / 60);
+            $amount = $hours * 40; // ₱40 per hour
+            
+            $ticket->save();
         } else {
             $amount = $ticket->price;
         }
