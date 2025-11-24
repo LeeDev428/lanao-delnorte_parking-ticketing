@@ -84,9 +84,9 @@ class AdminTicketController extends Controller
 
         $stats = [
             'todayTickets' => Ticket::whereDate('created_at', $today)->count(),
-            'todayRevenue' => Payment::whereDate('paid_at', $today)->sum('amount'),
-            'activeTickets' => Ticket::where('status', 'active')->count(),
-            'availableSlots' => 200 - Ticket::where('status', 'active')->count(),
+            'todayRevenue' => Payment::whereDate('paid_at', $today)->sum('amount') ?? 0,
+            'activeTickets' => Ticket::whereIn('status', ['active', 'pending_payment'])->count(),
+            'availableSlots' => 200 - Ticket::whereIn('status', ['active', 'pending_payment'])->count(),
             'totalSlots' => 200,
             'paidTickets' => Ticket::whereDate('created_at', $today)->where('status', 'paid')->count(),
             'cancelledTickets' => Ticket::whereDate('created_at', $today)->where('status', 'cancelled')->count(),
