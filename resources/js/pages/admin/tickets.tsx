@@ -27,12 +27,11 @@ export default function Tickets({ tickets }: TicketsProps) {
     const [filterStatus, setFilterStatus] = useState<string>('all');
 
     const handleExport = () => {
-        router.get('/admin/tickets/export', {
-            status: filterStatus,
-            search: searchQuery
-        }, {
-            preserveState: true,
-        });
+        const params = new URLSearchParams();
+        if (filterStatus !== 'all') params.append('status', filterStatus);
+        if (searchQuery) params.append('search', searchQuery);
+        
+        window.location.href = `/admin/tickets/export?${params.toString()}`;
     };
 
     // Ensure tickets is always an array - handle both array and paginated object
