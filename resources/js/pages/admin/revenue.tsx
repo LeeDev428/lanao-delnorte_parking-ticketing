@@ -140,7 +140,7 @@ export default function Revenue({ revenue }: RevenueProps) {
                 </div>
 
                 {/* Payment Methods Breakdown */}
-                <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -154,22 +154,90 @@ export default function Revenue({ revenue }: RevenueProps) {
                                     amount={revenueData.byPaymentMethod.cash}
                                     icon={<Banknote className="h-5 w-5 text-green-600" />}
                                     percentage={cashPercentage}
+                                    color="green"
                                 />
                                 <PaymentMethodRow
                                     method="GCash"
                                     amount={revenueData.byPaymentMethod.gcash}
                                     icon={<CreditCard className="h-5 w-5 text-blue-600" />}
                                     percentage={gcashPercentage}
+                                    color="blue"
                                 />
                                 <PaymentMethodRow
                                     method="Card"
                                     amount={revenueData.byPaymentMethod.card}
                                     icon={<CreditCard className="h-5 w-5 text-purple-600" />}
                                     percentage={cardPercentage}
+                                    color="purple"
                                 />
                             </div>
                         </div>
                     </div>
+
+                    {/* Payment Method Chart */}
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                Payment Distribution
+                            </h3>
+                        </div>
+                        <div className="p-6">
+                            <div className="h-64">
+                                {typeof window !== 'undefined' && (
+                                    <Chart
+                                        options={{
+                                            chart: {
+                                                type: 'donut',
+                                                background: 'transparent',
+                                            },
+                                            labels: ['Cash', 'GCash', 'Card'],
+                                            colors: ['#10B981', '#3B82F6', '#A855F7'],
+                                            dataLabels: {
+                                                enabled: true,
+                                                formatter: (val: number) => `${val.toFixed(1)}%`,
+                                            },
+                                            legend: {
+                                                position: 'bottom',
+                                                labels: {
+                                                    colors: '#9CA3AF',
+                                                },
+                                            },
+                                            plotOptions: {
+                                                pie: {
+                                                    donut: {
+                                                        size: '65%',
+                                                        labels: {
+                                                            show: true,
+                                                            total: {
+                                                                show: true,
+                                                                label: 'Total',
+                                                                formatter: () => `₱${totalRevenue.toLocaleString()}`,
+                                                                color: '#9CA3AF',
+                                                            },
+                                                        },
+                                                    },
+                                                },
+                                            },
+                                            tooltip: {
+                                                theme: 'dark',
+                                                y: {
+                                                    formatter: (value: number) => `₱${value.toLocaleString()}`,
+                                                },
+                                            },
+                                        }}
+                                        series={[
+                                            revenueData.byPaymentMethod.cash,
+                                            revenueData.byPaymentMethod.gcash,
+                                            revenueData.byPaymentMethod.card,
+                                        ]}
+                                        type="donut"
+                                        height="100%"
+                                    />
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                     {/* Quick Actions */}
                     {/* <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
