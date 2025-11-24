@@ -178,11 +178,54 @@ class AdminTicketController extends Controller
 
         $tickets = $query->latest()->get();
 
-        // For now, redirect back with success message
-        // In production, this would generate CSV/Excel file
-        return redirect()->back()->with('message', [
-            'type' => 'success',
-            'text' => "Export prepared with {$tickets->count()} tickets."
-        ]);
+        // Generate CSV
+        $filename = 'tickets_export_' . now()->format('Y-m-d_H-i-s') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function() use ($tickets) {
+            $file = fopen('php://output', 'w');
+            
+            // Add CSV headers
+            fputcsv($file, [
+                'Ticket ID',
+                'Plate Number',
+                'Zone',
+                'Rate Type',
+                'Price',
+                'Entry Time',
+                'Exit Time',
+                'Duration (mins)',
+                'Status',
+                'Agent',
+                'Payment Method',
+                'Payment Amount'
+            ]);
+
+            // Add data rows
+            foreach ($tickets as $ticket) {
+                fputcsv($file, [
+                    $ticket->ticket_id,
+                    $ticket->plate_number,
+                    $ticket->parking_zone,
+                    ucfirst(str_replace('_', ' ', $ticket->rate_type)),
+                    $ticket->price,
+                    $ticket->entry_time ? $ticket->entry_time->format('Y-m-d H:i:s') : '',
+                    $ticket->exit_time ? $ticket->exit_time->format('Y-m-d H:i:s') : '',
+                    $ticket->duration_minutes ?? '',
+                    ucfirst($ticket->status),
+                    $ticket->agent->name ?? '',
+                    $ticket->payment->payment_method ?? '',
+                    $ticket->payment->amount ?? '',
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }
