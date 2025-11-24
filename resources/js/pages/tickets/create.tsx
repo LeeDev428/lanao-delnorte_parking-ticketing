@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import InputError from '@/components/input-error';
 import { Spinner } from '@/components/ui/spinner';
 import { Head, router, useForm } from '@inertiajs/react';
-import { Camera, Car, Clock, DollarSign } from 'lucide-react';
+import { Camera, Car, Clock, DollarSign, ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 
 interface RateSetting {
@@ -57,12 +57,25 @@ export default function NewTicket({ rateSettings, parkingZones }: NewTicketProps
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/tickets', {
-            forceFormData: true, // Important for file upload
-            onSuccess: () => {
-                // Backend will handle redirect to payment or dashboard
-            },
-        });
+        
+        // For hourly rate, save immediately
+        if (data.rate_type === 'hourly') {
+            post('/tickets', {
+                forceFormData: true,
+                onSuccess: () => {
+                    // Backend will redirect to dashboard
+                },
+            });
+        } else {
+            // For flat_rate and overnight, save with pending status
+            // then redirect to payment
+            post('/tickets', {
+                forceFormData: true,
+                onSuccess: () => {
+                    // Backend will redirect to payment page
+                },
+            });
+        }
     };
 
     const selectedRate = mockRates.find(r => r.rate_type === data.rate_type);
@@ -74,10 +87,17 @@ export default function NewTicket({ rateSettings, parkingZones }: NewTicketProps
         ]}>
             <Head title="New Ticket" />
             
-            <div className="max-w-7xl mx-auto p-3 sm:p-6">
+            <div className="w-full max-w-[95%] mx-auto p-3 sm:p-6">
                 {/* Header */}
                 <div className="bg-blue-600 text-white rounded-t-2xl p-4 sm:p-6">
                     <div className="flex items-center gap-2 sm:gap-3">
+                        <button
+                            type="button"
+                            onClick={() => router.visit('/dashboard')}
+                            className="bg-white/20 p-2 rounded-lg hover:bg-white/30 transition-colors"
+                        >
+                            <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+                        </button>
                         <div className="bg-white/20 p-2 sm:p-3 rounded-lg">
                             <Car className="h-6 w-6 sm:h-8 sm:w-8" />
                         </div>
