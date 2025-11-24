@@ -1,5 +1,5 @@
 import AdminLayout from '@/layouts/admin/admin-layout';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import {
     DollarSign,
     TrendingUp,
@@ -55,6 +55,15 @@ export default function Revenue({ revenue }: RevenueProps) {
     const cardPercentage = totalByPaymentMethod > 0 
         ? Math.round((revenueData.byPaymentMethod.card / totalByPaymentMethod) * 100) 
         : 0;
+
+    const handleExportReport = (type: string) => {
+        router.get('/admin/reports/export', { type }, {
+            preserveState: true,
+            onSuccess: () => {
+                // Success notification could be added here
+            }
+        });
+    };
 
     const recentTransactions = [
         {
@@ -169,25 +178,37 @@ export default function Revenue({ revenue }: RevenueProps) {
                         </div>
                         <div className="p-6">
                             <div className="space-y-3">
-                                <button className="w-full flex items-center justify-between px-4 py-3 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors">
+                                <button 
+                                    onClick={() => handleExportReport('daily')}
+                                    className="w-full flex items-center justify-between px-4 py-3 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                                >
                                     <span className="text-blue-700 dark:text-blue-300 font-medium">
                                         Daily Report
                                     </span>
                                     <Download className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                                 </button>
-                                <button className="w-full flex items-center justify-between px-4 py-3 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors">
+                                <button 
+                                    onClick={() => handleExportReport('weekly')}
+                                    className="w-full flex items-center justify-between px-4 py-3 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors"
+                                >
                                     <span className="text-green-700 dark:text-green-300 font-medium">
                                         Weekly Report
                                     </span>
                                     <Download className="h-5 w-5 text-green-600 dark:text-green-400" />
                                 </button>
-                                <button className="w-full flex items-center justify-between px-4 py-3 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-colors">
+                                <button 
+                                    onClick={() => handleExportReport('monthly')}
+                                    className="w-full flex items-center justify-between px-4 py-3 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
+                                >
                                     <span className="text-purple-700 dark:text-purple-300 font-medium">
                                         Monthly Report
                                     </span>
                                     <Download className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                                 </button>
-                                <button className="w-full flex items-center justify-between px-4 py-3 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 rounded-lg transition-colors">
+                                <button 
+                                    onClick={() => handleExportReport('custom')}
+                                    className="w-full flex items-center justify-between px-4 py-3 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
+                                >
                                     <span className="text-indigo-700 dark:text-indigo-300 font-medium">
                                         Custom Range
                                     </span>
