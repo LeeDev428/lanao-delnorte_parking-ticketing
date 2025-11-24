@@ -64,7 +64,7 @@ export default function Reports({ payments, summary, agentSummary, agents, filte
         const headers = ['Receipt', 'Amount', 'Method', 'Date/Time', 'Agent', 'Plate'];
         const rows = payments.map(p => [
             p.receipt_number,
-            p.amount.toFixed(2),
+            Number(p.amount || 0).toFixed(2),
             p.payment_method.toUpperCase(),
             p.paid_at,
             p.collector_name,
