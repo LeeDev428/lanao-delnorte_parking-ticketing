@@ -81,7 +81,12 @@ class TicketController extends Controller
             $photoPath = $request->file('photo')->store('plates', 'public');
         }
 
-        // Create ticket
+        // Create ticket with pending_payment status for flat_rate/overnight
+        // Only create as active for hourly
+        $status = in_array($validated['rate_type'], ['flat_rate', 'overnight']) 
+            ? 'pending_payment' 
+            : 'active';
+
         $ticket = Ticket::create([
             'ticket_id' => Ticket::generateTicketId(),
             'plate_number' => $validated['plate_number'],
@@ -89,7 +94,7 @@ class TicketController extends Controller
             'rate_type' => $validated['rate_type'],
             'price' => $rateSetting->price,
             'entry_time' => now(),
-            'status' => 'active',
+            'status' => $status,
             'agent_id' => auth()->id(),
             'photo_path' => $photoPath,
         ]);
