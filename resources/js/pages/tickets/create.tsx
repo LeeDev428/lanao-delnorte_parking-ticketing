@@ -58,24 +58,14 @@ export default function NewTicket({ rateSettings, parkingZones }: NewTicketProps
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         
-        // For hourly rate, save immediately
-        if (data.rate_type === 'hourly') {
-            post('/tickets', {
-                forceFormData: true,
-                onSuccess: () => {
-                    // Backend will redirect to dashboard
-                },
-            });
-        } else {
-            // For flat_rate and overnight, save with pending status
-            // then redirect to payment
-            post('/tickets', {
-                forceFormData: true,
-                onSuccess: () => {
-                    // Backend will redirect to payment page
-                },
-            });
-        }
+        // Hourly: Save as active (no payment upfront, pay on exit)
+        // Flat/Overnight: Save as pending_payment (must pay before entry)
+        post('/tickets', {
+            forceFormData: true,
+            onSuccess: () => {
+                // Backend handles redirect
+            },
+        });
     };
 
     const selectedRate = mockRates.find(r => r.rate_type === data.rate_type);
@@ -87,7 +77,7 @@ export default function NewTicket({ rateSettings, parkingZones }: NewTicketProps
         ]}>
             <Head title="New Ticket" />
             
-            <div className="w-full max-w-[95%] mx-auto p-3 sm:p-6">
+            <div className="w-full px-3 sm:px-6 py-3 sm:py-6">
                 {/* Header */}
                 <div className="bg-blue-600 text-white rounded-t-2xl p-4 sm:p-6">
                     <div className="flex items-center gap-2 sm:gap-3">
