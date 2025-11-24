@@ -1,8 +1,9 @@
 import AdminLayout from '@/layouts/admin/admin-layout';
 import { Head, router, useForm } from '@inertiajs/react';
-import { UserPlus, Edit, Trash2, Shield, User as UserIcon } from 'lucide-react';
+import { UserPlus, Edit, Trash2, Shield, User as UserIcon, Search, Ban, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/input-error';
@@ -23,6 +24,11 @@ interface UsersProps {
 
 export default function Users({ users }: UsersProps) {
     const [showModal, setShowModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'agent'>('all');
+    const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
     // Mock users data
     const mockUsers: User[] = users || [
@@ -47,16 +53,33 @@ export default function Users({ users }: UsersProps) {
             name: 'Jane Smith',
             email: 'jane@parking.com',
             role: 'agent',
-            is_active: true,
+            is_active: false,
             created_at: '2025-02-01',
         },
     ];
+
+    // Filter users based on search and filters
+    const filteredUsers = mockUsers.filter(user => {
+        const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            user.email.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+        const matchesStatus = statusFilter === 'all' || 
+                            (statusFilter === 'active' && user.is_active) ||
+                            (statusFilter === 'inactive' && !user.is_active);
+        return matchesSearch && matchesRole && matchesStatus;
+    });
 
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
         email: '',
         password: '',
         password_confirmation: '',
+        role: 'agent' as 'admin' | 'agent',
+    });
+
+    const editFormData = useForm({
+        name: '',
+        email: '',
         role: 'agent' as 'admin' | 'agent',
     });
 
@@ -70,8 +93,33 @@ export default function Users({ users }: UsersProps) {
         });
     };
 
+    const handleEditUser = (user: User) => {
+        setEditingUser(user);
+        editFormData.setData({
+            name: user.name,
+            email: user.email,
+            role: user.role as 'admin' | 'agent',
+        });
+        setShowEditModal(true);
+    };
+
+    const handleUpdateUser = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (editingUser) {
+            editFormData.patch(`/admin/users/${editingUser.id}`, {
+                onSuccess: () => {
+                    setShowEditModal(false);
+                    setEditingUser(null);
+                    editFormData.reset();
+                },
+            });
+        }
+    };
+
     const toggleUserStatus = (userId: number) => {
-        router.patch(`/admin/users/${userId}/toggle-status`);
+        if (confirm('Are you sure you want to change this user\'s status?')) {
+            router.patch(`/admin/users/${userId}/toggle-status`);
+        }
     };
 
     return (
@@ -92,6 +140,53 @@ export default function Users({ users }: UsersProps) {
                         Add New User
                     </Button>
                 </div>
+
+                {/* Filters and Search */}
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            {/* Search */}
+                            <div className="md:col-span-2">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search by name or email..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="pl-10 pr-4 py-2 w-full border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Role Filter */}
+                            <div>
+                                <select
+                                    value={roleFilter}
+                                    onChange={(e) => setRoleFilter(e.target.value as 'all' | 'admin' | 'agent')}
+                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                    <option value="all">All Roles</option>
+                                    <option value="admin">Admin</option>
+                                    <option value="agent">Agent</option>
+                                </select>
+                            </div>
+
+                            {/* Status Filter */}
+                            <div>
+                                <select
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                    <option value="all">All Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
                 {/* Users Grid */}
                 {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -136,44 +231,63 @@ export default function Users({ users }: UsersProps) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                {mockUsers.map((user) => (
-                                    <tr
-                                        key={user.id}
-                                        className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                                    >
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                                {user.name}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-sm text-gray-600 dark:text-gray-400">
-                                                {user.email}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <RoleBadge role={user.role} />
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <StatusBadge isActive={user.is_active} />
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-sm text-gray-600 dark:text-gray-400">
-                                                {new Date(user.created_at).toLocaleDateString()}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex gap-2">
-                                                <button className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
-                                                    <Edit className="h-4 w-4" />
-                                                </button>
-                                                <button className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
-                                            </div>
+                                {filteredUsers.length > 0 ? (
+                                    filteredUsers.map((user) => (
+                                        <tr
+                                            key={user.id}
+                                            className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                                        >
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                                    {user.name}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                    {user.email}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <RoleBadge role={user.role} />
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <StatusBadge isActive={user.is_active} />
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                    {new Date(user.created_at).toLocaleDateString()}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex gap-2">
+                                                    <button 
+                                                        onClick={() => handleEditUser(user)}
+                                                        className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                                                        title="Edit User"
+                                                    >
+                                                        <Edit className="h-4 w-4" />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => toggleUserStatus(user.id)}
+                                                        className={user.is_active 
+                                                            ? "text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300" 
+                                                            : "text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                                                        }
+                                                        title={user.is_active ? "Deactivate User" : "Activate User"}
+                                                    >
+                                                        {user.is_active ? <Ban className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                                            No users found matching your filters.
                                         </td>
                                     </tr>
-                                ))}
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -278,6 +392,82 @@ export default function Users({ users }: UsersProps) {
                                 <Button type="submit" disabled={processing} className="flex-1">
                                     {processing && <Spinner />}
                                     Create User
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit User Modal */}
+            {showEditModal && editingUser && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md mx-4">
+                        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                                Edit User
+                            </h2>
+                        </div>
+                        <form onSubmit={handleUpdateUser} className="p-6 space-y-4">
+                            <div>
+                                <Label htmlFor="edit_name">Name</Label>
+                                <Input
+                                    id="edit_name"
+                                    type="text"
+                                    value={editFormData.data.name}
+                                    onChange={(e) => editFormData.setData('name', e.target.value)}
+                                    required
+                                    placeholder="Enter full name"
+                                />
+                                <InputError message={editFormData.errors.name} />
+                            </div>
+
+                            <div>
+                                <Label htmlFor="edit_email">Email</Label>
+                                <Input
+                                    id="edit_email"
+                                    type="email"
+                                    value={editFormData.data.email}
+                                    onChange={(e) => editFormData.setData('email', e.target.value)}
+                                    required
+                                    placeholder="user@example.com"
+                                />
+                                <InputError message={editFormData.errors.email} />
+                            </div>
+
+                            <div>
+                                <Label htmlFor="edit_role">Role</Label>
+                                <select
+                                    id="edit_role"
+                                    value={editFormData.data.role}
+                                    onChange={(e) =>
+                                        editFormData.setData('role', e.target.value as 'admin' | 'agent')
+                                    }
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    required
+                                >
+                                    <option value="agent">Agent</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                                <InputError message={editFormData.errors.role} />
+                            </div>
+
+                            <div className="flex gap-3 pt-4">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => {
+                                        setShowEditModal(false);
+                                        setEditingUser(null);
+                                        editFormData.reset();
+                                    }}
+                                    className="flex-1"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button type="submit" disabled={editFormData.processing} className="flex-1">
+                                    {editFormData.processing && <Spinner />}
+                                    Update User
                                 </Button>
                             </div>
                         </form>
