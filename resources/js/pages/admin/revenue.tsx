@@ -26,18 +26,35 @@ interface RevenueProps {
 }
 
 export default function Revenue({ revenue }: RevenueProps) {
-    // Mock data
-    const mockRevenue: RevenueData = revenue || {
-        today: 940.0,
-        week: 5240.0,
-        month: 21560.0,
-        year: 256800.0,
+    // Use real data from backend
+    const revenueData: RevenueData = revenue || {
+        today: 0,
+        week: 0,
+        month: 0,
+        year: 0,
         byPaymentMethod: {
-            cash: 15840.0,
-            gcash: 3920.0,
-            card: 1800.0,
+            cash: 0,
+            gcash: 0,
+            card: 0,
         },
     };
+
+    // Calculate total for percentage calculation
+    const totalByPaymentMethod = 
+        revenueData.byPaymentMethod.cash +
+        revenueData.byPaymentMethod.gcash +
+        revenueData.byPaymentMethod.card;
+
+    // Calculate percentages based on actual amounts
+    const cashPercentage = totalByPaymentMethod > 0 
+        ? Math.round((revenueData.byPaymentMethod.cash / totalByPaymentMethod) * 100) 
+        : 0;
+    const gcashPercentage = totalByPaymentMethod > 0 
+        ? Math.round((revenueData.byPaymentMethod.gcash / totalByPaymentMethod) * 100) 
+        : 0;
+    const cardPercentage = totalByPaymentMethod > 0 
+        ? Math.round((revenueData.byPaymentMethod.card / totalByPaymentMethod) * 100) 
+        : 0;
 
     const recentTransactions = [
         {
@@ -87,31 +104,27 @@ export default function Revenue({ revenue }: RevenueProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <RevenueCard
                         title="Today's Revenue"
-                        amount={mockRevenue.today}
+                        amount={revenueData.today}
                         icon={<DollarSign className="h-6 w-6" />}
                         color="blue"
-                        trend="+12%"
                     />
                     <RevenueCard
                         title="This Week"
-                        amount={mockRevenue.week}
+                        amount={revenueData.week}
                         icon={<Calendar className="h-6 w-6" />}
                         color="green"
-                        trend="+8%"
                     />
                     <RevenueCard
                         title="This Month"
-                        amount={mockRevenue.month}
+                        amount={revenueData.month}
                         icon={<TrendingUp className="h-6 w-6" />}
                         color="purple"
-                        trend="+15%"
                     />
                     <RevenueCard
                         title="This Year"
-                        amount={mockRevenue.year}
+                        amount={revenueData.year}
                         icon={<TrendingUp className="h-6 w-6" />}
                         color="indigo"
-                        trend="+22%"
                     />
                 </div>
 
@@ -127,21 +140,21 @@ export default function Revenue({ revenue }: RevenueProps) {
                             <div className="space-y-4">
                                 <PaymentMethodRow
                                     method="Cash"
-                                    amount={mockRevenue.byPaymentMethod.cash}
+                                    amount={revenueData.byPaymentMethod.cash}
                                     icon={<Banknote className="h-5 w-5 text-green-600" />}
-                                    percentage={73}
+                                    percentage={cashPercentage}
                                 />
                                 <PaymentMethodRow
                                     method="GCash"
-                                    amount={mockRevenue.byPaymentMethod.gcash}
+                                    amount={revenueData.byPaymentMethod.gcash}
                                     icon={<CreditCard className="h-5 w-5 text-blue-600" />}
-                                    percentage={18}
+                                    percentage={gcashPercentage}
                                 />
                                 <PaymentMethodRow
                                     method="Card"
-                                    amount={mockRevenue.byPaymentMethod.card}
+                                    amount={revenueData.byPaymentMethod.card}
                                     icon={<CreditCard className="h-5 w-5 text-purple-600" />}
-                                    percentage={9}
+                                    percentage={cardPercentage}
                                 />
                             </div>
                         </div>
@@ -268,13 +281,11 @@ function RevenueCard({
     amount,
     icon,
     color,
-    trend,
 }: {
     title: string;
     amount: number;
     icon: React.ReactNode;
     color: string;
-    trend?: string;
 }) {
     const colorClasses: Record<string, string> = {
         blue: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
@@ -287,11 +298,6 @@ function RevenueCard({
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between mb-4">
                 <div className={`p-3 rounded-lg ${colorClasses[color]}`}>{icon}</div>
-                {trend && (
-                    <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                        {trend}
-                    </span>
-                )}
             </div>
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
                 ₱ {amount.toLocaleString()}
