@@ -1,8 +1,16 @@
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Head, router } from '@inertiajs/react';
-import { Clock, MapPin, Car, CreditCard, Wallet, Banknote } from 'lucide-react';
+import { Clock, MapPin, Car, CreditCard, Wallet, Banknote, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 
 interface Ticket {
     id: number;
@@ -23,6 +31,7 @@ interface PaymentProps {
 export default function TicketPayment({ ticket }: PaymentProps) {
     const [selectedMethod, setSelectedMethod] = useState<'cash' | 'gcash' | 'card'>('cash');
     const [processing, setProcessing] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
 
     // Calculate time elapsed
     const entryTime = new Date(ticket.entry_time);
@@ -39,7 +48,12 @@ export default function TicketPayment({ ticket }: PaymentProps) {
     }
 
     const handlePayment = () => {
+        setShowConfirmModal(true);
+    };
+
+    const confirmPayment = () => {
         setProcessing(true);
+        setShowConfirmModal(false);
         router.post(`/tickets/${ticket.id}/payment`, {
             payment_method: selectedMethod,
         }, {
@@ -60,11 +74,24 @@ export default function TicketPayment({ ticket }: PaymentProps) {
         ]}>
             <Head title="Ticket Details" />
             
-            <div className="max-w-4xl mx-auto p-3 sm:p-4">
+            <div className="w-full max-w-[95%] mx-auto p-3 sm:p-4">
                 {/* Header */}
                 <div className="bg-blue-600 text-white rounded-t-2xl p-4 sm:p-6">
-                    <h1 className="text-xl sm:text-2xl font-bold mb-1">Ticket Details</h1>
-                    <p className="text-sm sm:text-base text-blue-100">Review and process payment</p>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => {
+                                // Go back to dashboard instead of create page
+                                router.visit('/dashboard');
+                            }}
+                            className="p-2 hover:bg-blue-700 rounded-lg transition-colors"
+                        >
+                            <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+                        </button>
+                        <div>
+                            <h1 className="text-xl sm:text-2xl font-bold mb-1">Ticket Details</h1>
+                            <p className="text-sm sm:text-base text-blue-100">Review and process payment</p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Ticket Info Card */}
@@ -173,6 +200,59 @@ export default function TicketPayment({ ticket }: PaymentProps) {
                     </div>
                 </div>
             </div>
+
+            {/* Confirmation Modal */}
+            <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="bg-green-100 dark:bg-green-900/20 p-3 rounded-full">
+                                <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+                            </div>
+                            <DialogTitle className="text-xl">Confirm Payment</DialogTitle>
+                        </div>
+                        <DialogDescription className="text-base pt-2">
+                            Are you sure you want to process this payment?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2">
+                        <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Ticket ID:</span>
+                            <span className="font-semibold">{ticket.ticket_id}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Plate:</span>
+                            <span className="font-semibold">{ticket.plate_number}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Payment Method:</span>
+                            <span className="font-semibold capitalize">{selectedMethod}</span>
+                        </div>
+                        <div className="flex justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
+                            <span className="text-gray-600 dark:text-gray-400">Amount:</span>
+                            <span className="text-xl font-bold text-green-600 dark:text-green-400">₱{amount.toFixed(2)}</span>
+                        </div>
+                    </div>
+                    <DialogFooter className="gap-2 sm:gap-0">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setShowConfirmModal(false)}
+                            className="flex-1"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={confirmPayment}
+                            disabled={processing}
+                            className="flex-1 bg-green-600 hover:bg-green-700"
+                        >
+                            Confirm Payment
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }
