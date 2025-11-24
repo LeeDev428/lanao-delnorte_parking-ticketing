@@ -138,7 +138,7 @@ export default function Revenue({ revenue }: RevenueProps) {
                 </div>
 
                 {/* Payment Methods Breakdown */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
                     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -170,7 +170,7 @@ export default function Revenue({ revenue }: RevenueProps) {
                     </div>
 
                     {/* Quick Actions */}
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    {/* <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                                 Export Reports
@@ -216,7 +216,7 @@ export default function Revenue({ revenue }: RevenueProps) {
                                 </button>
                             </div>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
 
                 {/* Recent Transactions */}
@@ -350,9 +350,9 @@ function PaymentMethodRow({
                     ₱ {amount.toLocaleString()}
                 </span>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
                 <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    className="bg-blue-600 dark:bg-blue-500 h-full rounded-full transition-all duration-300"
                     style={{ width: `${percentage}%` }}
                 />
             </div>
