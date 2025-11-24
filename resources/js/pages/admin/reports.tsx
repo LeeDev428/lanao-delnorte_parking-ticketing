@@ -240,7 +240,7 @@ export default function Reports({ payments, summary, agentSummary, agents, filte
                                             <td className="px-4 py-3 text-sm font-mono text-gray-900 dark:text-white">{payment.receipt_number}</td>
                                             <td className="px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white">{payment.plate_number}</td>
                                             <td className="px-4 py-3 text-sm text-right font-semibold text-green-600 dark:text-green-400">
-                                                ₱{payment.amount.toFixed(2)}
+                                                ₱{Number(payment.amount || 0).toFixed(2)}
                                             </td>
                                             <td className="px-4 py-3 text-sm">
                                                 <PaymentMethodBadge method={payment.payment_method} />
