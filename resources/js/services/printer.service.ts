@@ -67,6 +67,9 @@ export class ThermalPrinterService {
 
             console.log('📱 Selected device:', this.device.name || this.device.deviceId);
 
+            // Save device ID for auto-reconnect
+            localStorage.setItem('pt210_device_id', this.device.deviceId);
+
             // Connect to the device
             await BleClient.connect(this.device.deviceId, (deviceId) => {
                 console.log('🔌 Disconnected from:', deviceId);
@@ -96,6 +99,38 @@ export class ThermalPrinterService {
             } else {
                 throw new Error('Failed to connect. Turn on printer and put in pairing mode (blue LED blinking).');
             }
+        }
+    }
+
+    /**
+     * Connect to a specific device by ID (for auto-reconnect)
+     */
+    async connectToDevice(deviceId: string): Promise<void> {
+        try {
+            console.log('🔄 Connecting to saved device:', deviceId);
+
+            // Try to connect directly to the saved device
+            await BleClient.connect(deviceId, (disconnectedDeviceId) => {
+                console.log('🔌 Disconnected from:', disconnectedDeviceId);
+                this.isConnected = false;
+                this.stopKeepAlive();
+                this.attemptReconnect();
+            });
+
+            this.device = { deviceId, name: 'PT-210' };
+            this.isConnected = true;
+            this.reconnectAttempts = 0;
+            console.log('✅ Connected to saved printer');
+            
+            // Start keepalive
+            this.startKeepAlive();
+
+        } catch (error: any) {
+            console.error('❌ Auto-connect failed:', error);
+            this.isConnected = false;
+            this.device = null;
+            localStorage.removeItem('pt210_device_id');
+            throw error;
         }
     }
 
