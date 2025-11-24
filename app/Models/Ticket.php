@@ -46,6 +46,14 @@ class Ticket extends Model
     }
 
     /**
+     * Get the rate setting for this ticket's rate type
+     */
+    public function rateSetting()
+    {
+        return $this->belongsTo(RateSetting::class, 'rate_type', 'rate_type');
+    }
+
+    /**
      * Calculate duration in minutes
      */
     public function calculateDuration()
