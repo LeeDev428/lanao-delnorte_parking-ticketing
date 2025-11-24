@@ -1,5 +1,5 @@
 import AdminLayout from '@/layouts/admin/admin-layout';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { Search, Filter, Download, Eye } from 'lucide-react';
 import { useState } from 'react';
 
@@ -25,6 +25,15 @@ interface TicketsProps {
 export default function Tickets({ tickets }: TicketsProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState<string>('all');
+
+    const handleExport = () => {
+        router.get('/admin/tickets/export', {
+            status: filterStatus,
+            search: searchQuery
+        }, {
+            preserveState: true,
+        });
+    };
 
     // Ensure tickets is always an array - handle both array and paginated object
     const ticketData = tickets?.data || tickets || [];
@@ -105,7 +114,10 @@ export default function Tickets({ tickets }: TicketsProps) {
                             <option value="paid">Paid</option>
                             <option value="cancelled">Cancelled</option>
                         </select>
-                        <button className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                        <button 
+                            onClick={handleExport}
+                            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                        >
                             <Download className="h-4 w-4" />
                             Export
                         </button>
