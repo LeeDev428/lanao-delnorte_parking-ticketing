@@ -33,7 +33,7 @@ class RateSettingSeeder extends Seeder
             ],
             [
                 'rate_type' => 'overnight',
-                'price' => 100.00,
+                'price' => 2000.00,
                 'duration_minutes' => 720,
                 'description' => 'Overnight - ₱100 for 12 hours',
                 'is_active' => true,
