@@ -67,6 +67,15 @@ export default defineConfig({
             }
         })
     ],
+    server: {
+        host: '0.0.0.0', // Expose to network
+        port: 5173,
+        strictPort: true,
+        hmr: {
+            host: '192.168.0.36', // Your network IP
+            protocol: 'ws',
+        },
+    },
     esbuild: {
         jsx: 'automatic',
     },
