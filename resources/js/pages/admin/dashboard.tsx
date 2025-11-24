@@ -39,46 +39,24 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ stats }: DashboardProps) {
-    const [revenueFilter, setRevenueFilter] = useState<'7days' | '30days' | '90days'>('7days');
+    const [revenueFilter, setRevenueFilter] = useState<'7days' | '30days' | '90days' | '12months' | '36months'>('7days');
 
-    // Generate revenue data based on selected filter
+    // Use real revenue data from backend, no mock data
     const chartData = useMemo(() => {
-        if (stats?.revenueData && revenueFilter === '7days') {
+        if (stats?.revenueData) {
             return stats.revenueData;
         }
         
-        // Generate data based on filter
-        const dates: string[] = [];
-        const amounts: number[] = [];
-        const days = revenueFilter === '7days' ? 7 : revenueFilter === '30days' ? 30 : 90;
-        
-        for (let i = days - 1; i >= 0; i--) {
-            const date = new Date();
-            date.setDate(date.getDate() - i);
-            
-            if (days === 7) {
-                dates.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-            } else if (days === 30) {
-                // Show every 3 days for 30 days
-                if (i % 3 === 0) {
-                    dates.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-                    amounts.push(Math.floor(Math.random() * 5000) + 2000);
-                }
-            } else {
-                // Show every 7 days for 90 days
-                if (i % 7 === 0) {
-                    dates.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-                    amounts.push(Math.floor(Math.random() * 5000) + 2000);
-                }
-            }
-            
-            if (days === 7) {
-                amounts.push(Math.floor(Math.random() * 5000) + 2000);
-            }
-        }
-        
-        return { dates, amounts };
-    }, [stats, revenueFilter]);
+        // Return empty data if no stats
+        return { dates: [], amounts: [] };
+    }, [stats]);
+
+    // Update filter - this will trigger a page reload with new data
+    const handleFilterChange = (newFilter: '7days' | '30days' | '90days' | '12months' | '36months') => {
+        setRevenueFilter(newFilter);
+        // Reload page with filter parameter
+        window.location.href = `/admin/dashboard?filter=${newFilter}`;
+    };
 
     const chartOptions = {
         chart: {
@@ -251,12 +229,14 @@ export default function Dashboard({ stats }: DashboardProps) {
                         </h3>
                         <select
                             value={revenueFilter}
-                            onChange={(e) => setRevenueFilter(e.target.value as '7days' | '30days' | '90days')}
+                            onChange={(e) => setRevenueFilter(e.target.value as '7days' | '30days' | '90days' | '12months' | '36months')}
                             className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="7days">Last 7 Days</option>
                             <option value="30days">Last 30 Days</option>
                             <option value="90days">Last 90 Days</option>
+                            <option value="12months">Last 12 Months</option>
+                            <option value="36months">Last 36 Months</option>
                         </select>
                     </div>
                     <div className="p-6">
