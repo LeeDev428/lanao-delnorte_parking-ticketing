@@ -73,10 +73,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Admin routes
     Route::prefix('admin')->middleware('can:admin')->name('admin.')->group(function () {
-        Route::get('dashboard', function () {
+        Route::get('dashboard', function (\Illuminate\Http\Request $request) {
             $controller = new \App\Http\Controllers\Admin\AdminTicketController();
+            $filter = $request->get('filter', '7days');
             return Inertia::render('admin/dashboard', [
-                'stats' => $controller->dashboardStats(),
+                'stats' => $controller->dashboardStats($filter),
             ]);
         })->name('dashboard');
 
