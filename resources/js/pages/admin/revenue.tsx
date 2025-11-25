@@ -8,8 +8,17 @@ import {
     CreditCard,
     Banknote,
 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Chart from 'react-apexcharts';
+
+interface Transaction {
+    id: number;
+    ticket_id: string;
+    amount: number;
+    payment_method: string;
+    paid_at: string;
+    collected_by: string;
+}
 
 interface RevenueData {
     today: number;
@@ -21,6 +30,11 @@ interface RevenueData {
         gcash: number;
         card: number;
     };
+    recentTransactions?: Transaction[];
+    dateRange?: {
+        start_date: string;
+        end_date: string;
+    };
 }
 
 interface RevenueProps {
@@ -28,6 +42,9 @@ interface RevenueProps {
 }
 
 export default function Revenue({ revenue }: RevenueProps) {
+    const [startDate, setStartDate] = useState(revenue.dateRange?.start_date || '');
+    const [endDate, setEndDate] = useState(revenue.dateRange?.end_date || '');
+
     // Use real data from backend
     const revenueData: RevenueData = revenue || {
         today: 0,
@@ -39,6 +56,27 @@ export default function Revenue({ revenue }: RevenueProps) {
             gcash: 0,
             card: 0,
         },
+        recentTransactions: [],
+    };
+
+    // Apply date range filter
+    const applyDateFilter = () => {
+        router.get('/admin/revenue', {
+            start_date: startDate || undefined,
+            end_date: endDate || undefined,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    // Reset date filter
+    const resetDateFilter = () => {
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        setStartDate(firstDay.toISOString().split('T')[0]);
+        setEndDate(today.toISOString().split('T')[0]);
+        router.get('/admin/revenue');
     };
 
     // Calculate total for percentage calculation
@@ -66,45 +104,6 @@ export default function Revenue({ revenue }: RevenueProps) {
             }
         });
     };
-
-    const recentTransactions = [
-        {
-            id: 1,
-            receipt: 'TKT-23041',
-            ticket: 'P23-0214',
-            amount: 40.0,
-            method: 'cash',
-            time: '3:45 PM',
-            agent: 'John Doe',
-        },
-        {
-            id: 2,
-            receipt: 'TKT-23042',
-            ticket: 'P23-0215',
-            amount: 50.0,
-            method: 'gcash',
-            time: '2:30 PM',
-            agent: 'Jane Smith',
-        },
-        {
-            id: 3,
-            receipt: 'TKT-23043',
-            ticket: 'P23-0216',
-            amount: 100.0,
-            method: 'card',
-            time: '1:15 PM',
-            agent: 'John Doe',
-        },
-        {
-            id: 4,
-            receipt: 'TKT-23044',
-            ticket: 'P23-0217',
-            amount: 40.0,
-            method: 'cash',
-            time: '12:00 PM',
-            agent: 'Jane Smith',
-        },
-    ];
 
     return (
         <AdminLayout title="Revenue Reports">
@@ -279,16 +278,50 @@ export default function Revenue({ revenue }: RevenueProps) {
                 {/* Recent Transactions */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                     <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                            Recent Transactions
-                        </h3>
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                Recent Transactions
+                            </h3>
+                            
+                            {/* Date Range Filter */}
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2">
+                                    <Calendar className="h-4 w-4 text-gray-500" />
+                                    <input
+                                        type="date"
+                                        value={startDate}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                        className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white"
+                                    />
+                                    <span className="text-gray-500 text-sm">to</span>
+                                    <input
+                                        type="date"
+                                        value={endDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                        className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white"
+                                    />
+                                </div>
+                                <button
+                                    onClick={applyDateFilter}
+                                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
+                                >
+                                    Apply
+                                </button>
+                                <button
+                                    onClick={resetDateFilter}
+                                    className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                >
+                                    Reset
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-gray-50 dark:bg-gray-700/50">
                                 <tr>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Receipt No.
+                                        Payment ID
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                         Ticket ID
@@ -300,51 +333,71 @@ export default function Revenue({ revenue }: RevenueProps) {
                                         Method
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Time
+                                        Date & Time
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Agent
+                                        Collected By
                                     </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                {recentTransactions.map((transaction) => (
-                                    <tr
-                                        key={transaction.id}
-                                        className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                                    >
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                                {transaction.receipt}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-sm text-gray-600 dark:text-gray-400">
-                                                {transaction.ticket}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                                ₱ {transaction.amount.toFixed(2)}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-sm text-gray-600 dark:text-gray-400 capitalize">
-                                                {transaction.method}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-sm text-gray-600 dark:text-gray-400">
-                                                {transaction.time}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-sm text-gray-600 dark:text-gray-400">
-                                                {transaction.agent}
-                                            </span>
+                                {revenueData.recentTransactions && revenueData.recentTransactions.length > 0 ? (
+                                    revenueData.recentTransactions.map((transaction) => (
+                                        <tr
+                                            key={transaction.id}
+                                            className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                                        >
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                                    #{transaction.id}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="text-sm text-gray-900 dark:text-white">
+                                                    {transaction.ticket_id}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                                    ₱ {Number(transaction.amount).toFixed(2)}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${
+                                                    transaction.payment_method === 'cash'
+                                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                        : transaction.payment_method === 'gcash'
+                                                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                                        : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                                                }`}>
+                                                    {transaction.payment_method}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                    {new Date(transaction.paid_at).toLocaleString('en-US', {
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        year: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit',
+                                                    })}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                    {transaction.collected_by}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={6} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                            No transactions found for the selected date range
                                         </td>
                                     </tr>
-                                ))}
+                                )}
                             </tbody>
                         </table>
                     </div>
