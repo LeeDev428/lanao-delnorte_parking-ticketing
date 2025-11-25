@@ -147,12 +147,12 @@ export default function Login({
                     </div>
 
                     {/* Footer */}
-                    <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
+                    {/* <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
                         Having trouble logging in?{' '}
                         <Link href="/" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium">
                             Back to Home
                         </Link>
-                    </p>
+                    </p> */}
                 </div>
             </div>
         </>
