@@ -62,6 +62,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user is staff admin
+     */
+    public function isStaffAdmin(): bool
+    {
+        return $this->role === 'staff_admin';
+    }
+
+    /**
+     * Check if user has admin or staff admin role
+     */
+    public function canAccessAdmin(): bool
+    {
+        return in_array($this->role, ['admin', 'staff_admin']);
+    }
+
+    /**
      * Check if user is agent
      */
     public function isAgent(): bool
