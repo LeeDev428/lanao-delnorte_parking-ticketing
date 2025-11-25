@@ -45,7 +45,6 @@ interface ActiveTicketsProps {
 export default function ActiveTickets({ tickets, parkingZones, filters }: ActiveTicketsProps) {
     const [showSuccess, setShowSuccess] = useState(false);
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
-    const [selectedZone, setSelectedZone] = useState(filters.zone || 'all');
     const [selectedRateType, setSelectedRateType] = useState(filters.rate_type || 'all');
     const [showFilters, setShowFilters] = useState(false);
     const { props } = usePage();
@@ -54,14 +53,12 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
     const applyFilters = () => {
         router.get('/tickets', {
             search: searchTerm || undefined,
-            zone: selectedZone !== 'all' ? selectedZone : undefined,
             rate_type: selectedRateType !== 'all' ? selectedRateType : undefined,
         }, { preserveState: true, preserveScroll: true });
     };
 
     const clearFilters = () => {
         setSearchTerm('');
-        setSelectedZone('all');
         setSelectedRateType('all');
         router.get('/tickets', {}, { preserveState: true });
     };
@@ -142,7 +139,7 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
                     </div>
                     
                     {showFilters && (
-                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div>
                                 <Label htmlFor="search" className="text-xs">Plate Number</Label>
                                 <div className="relative">
@@ -155,20 +152,6 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
                                         className="pl-8 h-9"
                                     />
                                 </div>
-                            </div>
-                            <div>
-                                <Label htmlFor="zone" className="text-xs">Parking Zone</Label>
-                                <Select value={selectedZone} onValueChange={setSelectedZone}>
-                                    <SelectTrigger className="h-9">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">All Zones</SelectItem>
-                                        {parkingZones.map(zone => (
-                                            <SelectItem key={zone} value={zone}>{zone}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
                             </div>
                             <div>
                                 <Label htmlFor="rate_type" className="text-xs">Rate Type</Label>
@@ -196,8 +179,8 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
                     )}
                 </div>
 
-                {/* Tickets List */}
-                <div className="bg-white dark:bg-gray-800 rounded-b-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-6">
+                {/* Tickets Table */}
+                <div className="bg-white dark:bg-gray-800 rounded-b-2xl shadow-xl border border-gray-200 dark:border-gray-700">
                     {!tickets?.data || tickets.data.length === 0 ? (
                         <div className="text-center py-12">
                             <Car className="h-16 w-16 text-gray-300 mx-auto mb-4" />
@@ -210,91 +193,138 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
                         </div>
                     ) : (
                         <>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {tickets.data.map((ticket) => (
-                                    <div
-                                        key={ticket.id}
-                                        className="border-2 border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800 rounded-xl p-4 hover:shadow-lg transition-all"
-                                    >
-                                        {/* Header with Car Icon */}
-                                        <div className="flex items-center gap-3 mb-3">
-                                            <div className="bg-blue-500 p-2 rounded-lg">
-                                                <Car className="h-5 w-5 text-white" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <h3 className="font-bold text-base text-gray-900 dark:text-white">
-                                                    {ticket.plate_number || 'No Plate'}
-                                                </h3>
-                                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                                    {ticket.ticket_id}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        {/* Details */}
-                                        <div className="space-y-2 mb-4">
-                                            <div className="flex items-center gap-2 text-sm">
-                                                <MapPin className="h-4 w-4 text-gray-400" />
-                                                <span className="text-gray-600 dark:text-gray-300">{ticket.parking_zone}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-sm">
-                                                <Clock className="h-4 w-4 text-gray-400" />
-                                                <span className="text-gray-600 dark:text-gray-300">
-                                                    {calculateElapsedTime(ticket.entry_time)}
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                                                    ticket.rate_type === 'hourly' 
-                                                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                                                        : ticket.rate_type === 'flat_rate'
-                                                        ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                                                        : 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300'
-                                                }`}>
-                                                    {ticket.rate_type === 'flat_rate' ? 'Flat Rate' : 
-                                                     ticket.rate_type === 'overnight' ? 'Overnight' : 'Hourly'}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Amount */}
-                                        <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
-                                            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                                                ₱{(calculateCurrentCharge(ticket) || 0).toFixed(2)}
-                                            </p>
-                                            {ticket.rate_type === 'hourly' && (
-                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                    Current charge
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        {/* Action Buttons */}
-                                        <div className="flex gap-2">
-                                            {ticket.rate_type === 'hourly' && (
-                                                <Link href={`/tickets/${ticket.id}/payment`} className="flex-1">
-                                                    <Button className="w-full bg-green-600 hover:bg-green-700 h-9">
-                                                        <CreditCard className="h-4 w-4 mr-2" />
-                                                        Pay Now
-                                                    </Button>
-                                                </Link>
-                                            )}
-                                            <Button 
-                                                variant="destructive"
-                                                onClick={() => handleDeactivate(ticket.id)}
-                                                className={`bg-red-600 hover:bg-red-700 h-9 ${ticket.rate_type === 'hourly' ? '' : 'w-full'}`}
-                                            >
-                                                <XCircle className="h-4 w-4 mr-2" />
-                                                Deactivate
-                                            </Button>
-                                        </div>
-                                    </div>
-                                ))}
+                            {/* Horizontal Scrollable Table */}
+                            <div className="overflow-x-auto">
+                                <table className="w-full min-w-max">
+                                    <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+                                        <tr>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                                                Status
+                                            </th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                                                Ticket ID
+                                            </th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                                                Plate Number
+                                            </th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                                                Parking Zone
+                                            </th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                                                Rate Type
+                                            </th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                                                Elapsed Time
+                                            </th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                                                Current Charge
+                                            </th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                                                Entry Time
+                                            </th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                                                Actions
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                        {tickets.data.map((ticket) => {
+                                            const currentCharge = calculateCurrentCharge(ticket);
+                                            
+                                            return (
+                                                <tr 
+                                                    key={ticket.id}
+                                                    className="hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors"
+                                                >
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                                                            <Car className="h-3 w-3" /> Active
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                                            {ticket.ticket_id}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <span className="text-sm text-gray-900 dark:text-white font-medium">
+                                                            {ticket.plate_number || 'N/A'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                            {ticket.parking_zone}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <span className={`inline-block px-2 py-1 rounded text-xs font-medium capitalize ${
+                                                            ticket.rate_type === 'hourly' 
+                                                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                                                : ticket.rate_type === 'flat_rate'
+                                                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                                : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                                                        }`}>
+                                                            {ticket.rate_type.replace('_', ' ')}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                            {calculateElapsedTime(ticket.entry_time)}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <div>
+                                                            <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                                                                ₱{currentCharge.toFixed(2)}
+                                                            </span>
+                                                            {ticket.rate_type === 'hourly' && (
+                                                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                                    ₱40/hr
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                            {new Date(ticket.entry_time).toLocaleString('en-US', {
+                                                                month: 'short',
+                                                                day: 'numeric',
+                                                                hour: '2-digit',
+                                                                minute: '2-digit'
+                                                            })}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <div className="flex gap-2">
+                                                            {ticket.rate_type === 'hourly' && (
+                                                                <Link href={`/tickets/${ticket.id}/payment`}>
+                                                                    <Button size="sm" className="bg-green-600 hover:bg-green-700 h-8">
+                                                                        <CreditCard className="h-3 w-3 mr-1" />
+                                                                        Pay
+                                                                    </Button>
+                                                                </Link>
+                                                            )}
+                                                            <Button 
+                                                                size="sm"
+                                                                variant="destructive"
+                                                                onClick={() => handleDeactivate(ticket.id)}
+                                                                className="bg-red-600 hover:bg-red-700 h-8"
+                                                            >
+                                                                <XCircle className="h-3 w-3 mr-1" />
+                                                                End
+                                                            </Button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
                             </div>
 
                         {/* Pagination */}
                         {tickets.last_page > 1 && (
-                            <div className="mt-6 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-4">
+                            <div className="px-6 py-4 flex items-center justify-between border-t border-gray-200 dark:border-gray-700">
                                 <div className="text-sm text-gray-600 dark:text-gray-400">
                                     Showing {tickets.from} to {tickets.to} of {tickets.total} results
                                 </div>
