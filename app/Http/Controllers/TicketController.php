@@ -21,10 +21,6 @@ class TicketController extends Controller
             ->where('status', 'active');
 
         // Apply filters
-        if ($request->filled('zone')) {
-            $query->where('parking_zone', $request->zone);
-        }
-        
         if ($request->filled('rate_type')) {
             $query->where('rate_type', $request->rate_type);
         }
@@ -40,7 +36,6 @@ class TicketController extends Controller
             'tickets' => $tickets,
             'parkingZones' => $parkingZones,
             'filters' => [
-                'zone' => $request->zone,
                 'rate_type' => $request->rate_type,
                 'search' => $request->search,
             ],
@@ -203,10 +198,6 @@ class TicketController extends Controller
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-
-        if ($request->filled('zone')) {
-            $query->where('parking_zone', $request->zone);
-        }
         
         if ($request->filled('rate_type')) {
             $query->where('rate_type', $request->rate_type);
@@ -236,7 +227,6 @@ class TicketController extends Controller
             'parkingZones' => $parkingZones,
             'filters' => [
                 'status' => $request->status,
-                'zone' => $request->zone,
                 'rate_type' => $request->rate_type,
                 'search' => $request->search,
                 'start_date' => $request->start_date,
