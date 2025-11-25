@@ -18,7 +18,7 @@ class LoginResponse implements LoginResponseContract
         $user = $request->user();
 
         // Redirect based on user role
-        if ($user->role === 'admin') {
+        if ($user->role === 'admin' || $user->role === 'staff_admin') {
             return $request->wantsJson()
                 ? new JsonResponse('', 204)
                 : redirect()->intended('/admin/dashboard');
