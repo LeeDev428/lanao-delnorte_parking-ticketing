@@ -216,7 +216,19 @@ class TicketController extends Controller
             $query->where('plate_number', 'like', '%' . $request->search . '%');
         }
 
-        $tickets = $query->latest()->paginate(30)->withQueryString();
+        // Date range filter
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+        
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        // Per page parameter
+        $perPage = $request->filled('per_page') ? (int) $request->per_page : 30;
+
+        $tickets = $query->latest()->paginate($perPage)->withQueryString();
         $parkingZones = ['Zone 1', 'Zone 2', 'Zone 3', 'Zone 4'];
 
         return Inertia::render('tickets/history', [
@@ -227,6 +239,9 @@ class TicketController extends Controller
                 'zone' => $request->zone,
                 'rate_type' => $request->rate_type,
                 'search' => $request->search,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'per_page' => $request->per_page,
             ],
         ]);
     }
