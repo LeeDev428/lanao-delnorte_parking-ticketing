@@ -55,7 +55,6 @@ interface HistoryProps {
 export default function History({ tickets, parkingZones, filters }: HistoryProps) {
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [selectedStatus, setSelectedStatus] = useState(filters.status || 'all');
-    const [selectedZone, setSelectedZone] = useState(filters.zone || 'all');
     const [selectedRateType, setSelectedRateType] = useState(filters.rate_type || 'all');
     const [startDate, setStartDate] = useState(filters.start_date || '');
     const [endDate, setEndDate] = useState(filters.end_date || '');
@@ -66,7 +65,6 @@ export default function History({ tickets, parkingZones, filters }: HistoryProps
         router.get('/tickets/history', {
             search: searchTerm || undefined,
             status: selectedStatus !== 'all' ? selectedStatus : undefined,
-            zone: selectedZone !== 'all' ? selectedZone : undefined,
             rate_type: selectedRateType !== 'all' ? selectedRateType : undefined,
             start_date: startDate || undefined,
             end_date: endDate || undefined,
@@ -76,9 +74,7 @@ export default function History({ tickets, parkingZones, filters }: HistoryProps
 
     const clearFilters = () => {
         setSearchTerm('');
-        setSelectedStatus('all');
-        setSelectedZone('all');
-        setSelectedRateType('all');
+        setSelectedStatus('all');l');
         setStartDate('');
         setEndDate('');
         setPerPage(20);
@@ -134,7 +130,7 @@ export default function History({ tickets, parkingZones, filters }: HistoryProps
                     
                     {showFilters && (
                         <div className="space-y-4">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                 <div>
                                     <Label htmlFor="search" className="text-xs">Plate Number</Label>
                                     <div className="relative">
@@ -158,20 +154,6 @@ export default function History({ tickets, parkingZones, filters }: HistoryProps
                                             <SelectItem value="all">All Status</SelectItem>
                                             <SelectItem value="paid">Paid</SelectItem>
                                             <SelectItem value="cancelled">Cancelled</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div>
-                                    <Label htmlFor="zone" className="text-xs">Parking Zone</Label>
-                                    <Select value={selectedZone} onValueChange={setSelectedZone}>
-                                        <SelectTrigger className="h-9">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">All Zones</SelectItem>
-                                            {parkingZones.map(zone => (
-                                                <SelectItem key={zone} value={zone}>{zone}</SelectItem>
-                                            ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
