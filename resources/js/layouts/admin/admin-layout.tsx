@@ -24,44 +24,53 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const currentUrl = window.location.pathname;
 
+    // Check if user is admin (not staff_admin)
+    const isFullAdmin = auth.user?.role === 'admin';
+
     const navigation = [
         {
             name: 'Dashboard',
             href: '/admin/dashboard',
             icon: LayoutDashboard,
             current: currentUrl === '/admin/dashboard',
+            show: true,
         },
         {
             name: 'Ticket Management',
             href: '/admin/tickets',
             icon: Ticket,
             current: currentUrl === '/admin/tickets',
+            show: true,
         },
         {
             name: 'Rate Settings',
             href: '/admin/rate-settings',
             icon: Settings,
             current: currentUrl === '/admin/rate-settings',
+            show: isFullAdmin, // Only show for admin, not staff_admin
         },
         {
             name: 'Revenue Reports',
             href: '/admin/revenue',
             icon: DollarSign,
             current: currentUrl === '/admin/revenue',
+            show: true,
         },
         {
             name: 'Collections Report',
             href: '/admin/reports',
             icon: FileText,
             current: currentUrl === '/admin/reports',
+            show: true,
         },
         {
             name: 'User Management',
             href: '/admin/users',
             icon: UserPlus,
             current: currentUrl === '/admin/users',
+            show: isFullAdmin, // Only show for admin, not staff_admin
         },
-    ];
+    ].filter(item => item.show); // Filter out hidden items
 
     const handleLogout = () => {
         router.post('/logout');
