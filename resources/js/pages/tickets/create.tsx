@@ -38,7 +38,7 @@ export default function NewTicket({ rateSettings, parkingZones }: NewTicketProps
 
     const { data, setData, post, processing, errors } = useForm({
         plate_number: '',
-        parking_zone: zones[0],
+        parking_zone: '',
         rate_type: 'hourly' as 'hourly' | 'flat_rate' | 'overnight',
         photo: null as File | null,
     });
@@ -166,18 +166,14 @@ export default function NewTicket({ rateSettings, parkingZones }: NewTicketProps
                             <Label htmlFor="parking_zone" className="text-sm sm:text-base font-semibold">
                                 Parking Zone / Area
                             </Label>
-                            <select
+                            <Input
                                 id="parking_zone"
+                                type="text"
                                 value={data.parking_zone}
                                 onChange={(e) => setData('parking_zone', e.target.value)}
-                                className="mt-2 w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base sm:text-lg"
-                            >
-                                {zones.map((zone) => (
-                                    <option key={zone} value={zone}>
-                                        {zone}
-                                    </option>
-                                ))}
-                            </select>
+                                placeholder="Enter parking zone (e.g., Zone 1, North Lot, etc.)"
+                                className="mt-2 text-base sm:text-lg py-2 sm:py-3"
+                            />
                             <InputError message={errors.parking_zone} />
                         </div>
 
