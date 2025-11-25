@@ -38,6 +38,30 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        // Create default staff admin user
+        User::firstOrCreate(
+            ['email' => 'staff@gmail.com'],
+            [
+                'name' => 'Staff Admin',
+                'password' => 'staff123',
+                'role' => 'staff_admin',
+                'is_active' => true,
+                'email_verified_at' => now(),
+            ]
+        );
+
+            // Create default staff admin user
+        User::firstOrCreate(
+            ['email' => 'staffadmin@gmail.com'],
+            [
+                'name' => 'Staff Admin User',
+                'password' => 'staffadmin123',
+                'role' => 'staff_admin',
+                'is_active' => true,
+                'email_verified_at' => now(),
+            ]
+        );
+
         // Create default rate settings
         RateSetting::firstOrCreate(
             ['rate_type' => 'hourly'],
