@@ -74,7 +74,8 @@ export default function History({ tickets, parkingZones, filters }: HistoryProps
 
     const clearFilters = () => {
         setSearchTerm('');
-        setSelectedStatus('all');l');
+        setSelectedStatus('all');
+        setSelectedRateType('all');
         setStartDate('');
         setEndDate('');
         setPerPage(20);
