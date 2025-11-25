@@ -24,6 +24,14 @@ class AdminTicketController extends Controller
             $query->where('status', $request->status);
         }
 
+        // Filter by date range
+        if ($request->has('start_date') && $request->start_date) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+        if ($request->has('end_date') && $request->end_date) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
         // Search
         if ($request->has('search')) {
             $query->where(function($q) use ($request) {
@@ -32,7 +40,8 @@ class AdminTicketController extends Controller
             });
         }
 
-        $tickets = $query->latest()->paginate(20);
+        $perPage = $request->get('per_page', 20);
+        $tickets = $query->latest()->paginate($perPage)->withQueryString();
 
         // Add duration_minutes calculation for each ticket
         $tickets->getCollection()->transform(function($ticket) {
@@ -52,6 +61,7 @@ class AdminTicketController extends Controller
 
         return Inertia::render('admin/tickets', [
             'tickets' => $tickets,
+            'filters' => $request->only(['status', 'search', 'start_date', 'end_date', 'per_page']),
         ]);
     }
 
@@ -202,9 +212,30 @@ class AdminTicketController extends Controller
     /**
      * Revenue stats
      */
-    public function revenueStats()
+    public function revenueStats(Request $request)
     {
         $today = now();
+        
+        // Date range for filtering (default: this month)
+        $startDate = $request->get('start_date') ? \Carbon\Carbon::parse($request->get('start_date')) : $today->copy()->startOfMonth();
+        $endDate = $request->get('end_date') ? \Carbon\Carbon::parse($request->get('end_date')) : $today->copy()->endOfMonth();
+        
+        // Get recent transactions with real data from payments table
+        $recentTransactions = Payment::with(['ticket', 'collectedBy'])
+            ->whereBetween('paid_at', [$startDate, $endDate])
+            ->latest('paid_at')
+            ->limit(10)
+            ->get()
+            ->map(function($payment) {
+                return [
+                    'id' => $payment->id,
+                    'ticket_id' => $payment->ticket ? $payment->ticket->ticket_id : 'N/A',
+                    'amount' => $payment->amount,
+                    'payment_method' => $payment->payment_method,
+                    'paid_at' => $payment->paid_at->format('Y-m-d H:i:s'),
+                    'collected_by' => $payment->collectedBy ? $payment->collectedBy->name : 'N/A',
+                ];
+            });
         
         return [
             'today' => Payment::whereDate('paid_at', $today)->sum('amount'),
@@ -215,6 +246,11 @@ class AdminTicketController extends Controller
                 'cash' => Payment::where('payment_method', 'cash')->whereMonth('paid_at', $today->month)->sum('amount'),
                 'gcash' => Payment::where('payment_method', 'gcash')->whereMonth('paid_at', $today->month)->sum('amount'),
                 'card' => Payment::where('payment_method', 'card')->whereMonth('paid_at', $today->month)->sum('amount'),
+            ],
+            'recentTransactions' => $recentTransactions,
+            'dateRange' => [
+                'start_date' => $startDate->format('Y-m-d'),
+                'end_date' => $endDate->format('Y-m-d'),
             ],
         ];
     }
