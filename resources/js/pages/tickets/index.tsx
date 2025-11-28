@@ -150,25 +150,37 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
 
     // Handle scanned QR code
     const handleQRCodeScanned = async (qrData: string) => {
-        stopScanner();
+        setScanning(false);
 
         try {
             let ticketId: string | null = null;
+            
+            console.log('Raw QR Data:', qrData);
             
             // Try to parse as JSON first
             try {
                 const parsed = JSON.parse(qrData);
                 ticketId = parsed.ticket_id || null;
-            } catch {
+                console.log('Parsed ticket_id from JSON:', ticketId);
+            } catch (e) {
                 // If not JSON, check if it's a plain ticket ID (e.g., "P25-0001")
-                if (qrData.match(/^P\d{2}-\d{4,}$/)) {
-                    ticketId = qrData;
+                const match = qrData.match(/P\d{2}-\d{4,}/);
+                if (match) {
+                    ticketId = match[0];
+                    console.log('Extracted ticket_id from text:', ticketId);
                 }
             }
 
             if (!ticketId) {
-                console.log('QR Data received:', qrData);
-                setScanError('Invalid QR code format. Expected parking ticket QR.');
+                setScanError(`Invalid QR code. Data: "${qrData.substring(0, 50)}..."`);
+                return;
+            }
+
+            // Get CSRF token
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            if (!csrfToken) {
+                setScanError('Session expired. Please refresh the page.');
                 return;
             }
 
@@ -177,10 +189,24 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
                 },
                 body: JSON.stringify({ ticket_id: ticketId }),
             });
+
+            // Check if response is OK
+            if (!response.ok) {
+                if (response.status === 404) {
+                    setScanError(`Ticket "${ticketId}" not found in the system.`);
+                } else if (response.status === 419) {
+                    setScanError('Session expired. Please refresh the page and try again.');
+                } else {
+                    setScanError(`Server error (${response.status}). Please try again.`);
+                }
+                return;
+            }
 
             const data = await response.json();
 
@@ -191,21 +217,24 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
 
             const ticket = data.ticket;
 
-            // Check if ticket is active
+            // Check ticket status and handle accordingly
             if (ticket.status === 'active') {
-                // Redirect to payment page
+                // Active ticket - Go to payment page
+                router.visit(`/tickets/${ticket.id}/payment`);
+            } else if (ticket.status === 'pending_payment') {
+                // Pending payment (flat rate/overnight before first payment) - Go to payment
                 router.visit(`/tickets/${ticket.id}/payment`);
             } else {
-                // Show modal for already paid/inactive ticket
+                // Already paid, cancelled, or other status - Show modal
                 setScannedTicket({
                     ...ticket,
                     payment: data.payment,
                 });
                 setShowPaidModal(true);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('QR scan error:', error);
-            setScanError('Failed to process QR code. Please try again.');
+            setScanError(`Error: ${error.message || 'Failed to process QR code'}`);
         }
     };
 
