@@ -96,7 +96,7 @@ export default function Receipt({ payment }: ReceiptProps) {
         ]}>
             <Head title="Payment Success" />
             
-            <div className="w-full px-3 sm:px-6 py-6 bg-gray-100 dark:bg-gray-900 min-h-screen print:bg-white print:p-0">
+            <div className="w-full px-3 sm:px-6 py-6 bg-gray-100 min-h-screen print:bg-white print:p-0">
                 {/* Success Header - Hide on print */}
                 <div className="bg-green-600 text-white rounded-t-2xl p-6 text-center mb-6 print:hidden">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-3">
