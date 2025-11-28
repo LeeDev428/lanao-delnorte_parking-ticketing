@@ -205,26 +205,29 @@ class TicketController extends Controller
         $ticket = Ticket::where('ticket_id', $validated['ticket_id'])->first();
 
         if (!$ticket) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ticket not found',
-            ], 404);
+            return back()->withErrors([
+                'message' => 'Ticket "' . $validated['ticket_id'] . '" not found in the system.',
+            ]);
         }
 
-        // Return ticket status and data
-        return response()->json([
-            'success' => true,
-            'ticket' => [
-                'id' => $ticket->id,
-                'ticket_id' => $ticket->ticket_id,
-                'plate_number' => $ticket->plate_number,
-                'parking_zone' => $ticket->parking_zone,
-                'rate_type' => $ticket->rate_type,
-                'price' => $ticket->price,
-                'entry_time' => $ticket->entry_time,
-                'exit_time' => $ticket->exit_time,
-                'status' => $ticket->status,
-            ],
+        // Check ticket status and redirect accordingly
+        if ($ticket->status === 'active' || $ticket->status === 'pending_payment') {
+            // Active/pending ticket - Go to payment page
+            return redirect()->route('tickets.payment', $ticket->id);
+        }
+
+        // Already paid, cancelled, or other status - Redirect back with ticket info
+        // The frontend will show the modal
+        return back()->with('scannedTicket', [
+            'id' => $ticket->id,
+            'ticket_id' => $ticket->ticket_id,
+            'plate_number' => $ticket->plate_number,
+            'parking_zone' => $ticket->parking_zone,
+            'rate_type' => $ticket->rate_type,
+            'price' => $ticket->price,
+            'entry_time' => $ticket->entry_time,
+            'exit_time' => $ticket->exit_time,
+            'status' => $ticket->status,
             'payment' => $ticket->payment ? [
                 'receipt_number' => $ticket->payment->receipt_number,
                 'amount' => $ticket->payment->amount,
