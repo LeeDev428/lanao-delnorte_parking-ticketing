@@ -164,10 +164,9 @@ class TicketController extends Controller
             'collected_by' => auth()->id(),
         ]);
 
-        // Update ticket status
+        // Update ticket status (exit_time is already set above based on rate type)
         $ticket->update([
             'status' => 'paid',
-            'exit_time' => now(),
         ]);
 
         return redirect()->route('tickets.receipt', $payment->id);
