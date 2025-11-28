@@ -176,62 +176,88 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
                 return;
             }
 
-            // Get CSRF token
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-            
-            if (!csrfToken) {
-                setScanError('Session expired. Please refresh the page.');
+            // Search for the ticket locally first from our current tickets list
+            const localTicket = tickets?.data.find((t: Ticket) => t.ticket_id === ticketId);
+            if (localTicket) {
+                // Found in local data - navigate directly to payment
+                router.visit(`/tickets/${localTicket.id}/payment`);
                 return;
             }
 
-            // Call API to get ticket status
-            const response = await fetch('/tickets/scan', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: JSON.stringify({ ticket_id: ticketId }),
-            });
+            // Use XMLHttpRequest for better compatibility with Capacitor WebView
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/tickets/scan', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('Accept', 'application/json');
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            
+            // Get CSRF token from cookie (Laravel sets it as XSRF-TOKEN)
+            const getCookie = (name: string): string | null => {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) {
+                    const cookieValue = parts.pop()?.split(';').shift();
+                    return cookieValue ? decodeURIComponent(cookieValue) : null;
+                }
+                return null;
+            };
+            
+            const xsrfToken = getCookie('XSRF-TOKEN');
+            if (xsrfToken) {
+                xhr.setRequestHeader('X-XSRF-TOKEN', xsrfToken);
+            }
+            
+            // Also try meta tag as fallback
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (csrfToken) {
+                xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+            }
+            
+            xhr.withCredentials = true; // Important for cookies
 
-            // Check if response is OK
-            if (!response.ok) {
-                if (response.status === 404) {
+            xhr.onload = function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        
+                        if (!data.success) {
+                            setScanError(data.message || 'Ticket not found');
+                            return;
+                        }
+
+                        const ticket = data.ticket;
+
+                        // Check ticket status and handle accordingly
+                        if (ticket.status === 'active') {
+                            router.visit(`/tickets/${ticket.id}/payment`);
+                        } else if (ticket.status === 'pending_payment') {
+                            router.visit(`/tickets/${ticket.id}/payment`);
+                        } else {
+                            setScannedTicket({
+                                ...ticket,
+                                payment: data.payment,
+                            });
+                            setShowPaidModal(true);
+                        }
+                    } catch (parseError) {
+                        console.error('JSON parse error:', parseError);
+                        setScanError('Invalid response from server');
+                    }
+                } else if (xhr.status === 404) {
                     setScanError(`Ticket "${ticketId}" not found in the system.`);
-                } else if (response.status === 419) {
+                } else if (xhr.status === 419) {
                     setScanError('Session expired. Please refresh the page and try again.');
                 } else {
-                    setScanError(`Server error (${response.status}). Please try again.`);
+                    setScanError(`Server error (${xhr.status}). Please try again.`);
                 }
-                return;
-            }
+            };
 
-            const data = await response.json();
+            xhr.onerror = function() {
+                console.error('XHR error');
+                setScanError('Network error. Please check your connection.');
+            };
 
-            if (!data.success) {
-                setScanError(data.message || 'Ticket not found');
-                return;
-            }
-
-            const ticket = data.ticket;
-
-            // Check ticket status and handle accordingly
-            if (ticket.status === 'active') {
-                // Active ticket - Go to payment page
-                router.visit(`/tickets/${ticket.id}/payment`);
-            } else if (ticket.status === 'pending_payment') {
-                // Pending payment (flat rate/overnight before first payment) - Go to payment
-                router.visit(`/tickets/${ticket.id}/payment`);
-            } else {
-                // Already paid, cancelled, or other status - Show modal
-                setScannedTicket({
-                    ...ticket,
-                    payment: data.payment,
-                });
-                setShowPaidModal(true);
-            }
+            xhr.send(JSON.stringify({ ticket_id: ticketId }));
         } catch (error: any) {
             console.error('QR scan error:', error);
             setScanError(`Error: ${error.message || 'Failed to process QR code'}`);
