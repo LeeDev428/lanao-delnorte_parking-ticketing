@@ -58,6 +58,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/{ticket}/payment', [App\Http\Controllers\TicketController::class, 'processPayment'])->name('payment.process');
         Route::post('/{ticket}/deactivate', [App\Http\Controllers\TicketController::class, 'deactivate'])->name('deactivate');
         Route::get('/receipt/{payment}', [App\Http\Controllers\TicketController::class, 'showReceipt'])->name('receipt');
+        Route::get('/entry-receipt/{ticket}', [App\Http\Controllers\TicketController::class, 'showEntryReceipt'])->name('entry-receipt');
+        Route::post('/scan', [App\Http\Controllers\TicketController::class, 'scanTicket'])->name('scan');
         Route::get('/history', [App\Http\Controllers\TicketController::class, 'history'])->name('history');
         
         // Agent Remittance
