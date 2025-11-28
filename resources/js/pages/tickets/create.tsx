@@ -121,7 +121,7 @@ export default function NewTicket({ rateSettings, parkingZones }: NewTicketProps
                         {/* Photo Upload (Optional) */}
                         <div>
                             <Label htmlFor="photo" className="text-sm sm:text-base font-semibold">
-                                Scan Plate (Optional)
+                                Scan Plate
                             </Label>
                             <div className="mt-2">
                                 {photoPreview ? (
