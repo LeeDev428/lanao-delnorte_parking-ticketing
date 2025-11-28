@@ -122,12 +122,12 @@ export default function Login({
                                             tabIndex={3}
                                             className="border-gray-300 dark:border-gray-600"
                                         />
-                                        <Label 
+                                        {/* <Label 
                                             htmlFor="remember" 
                                             className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer"
                                         >
                                             Remember me for 30 days
-                                        </Label>
+                                        </Label> */}
                                     </div>
 
                                     {/* Submit Button */}
