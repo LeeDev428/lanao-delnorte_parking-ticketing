@@ -153,61 +153,127 @@ export class ThermalPrinterService {
 
             const ticket = payment.ticket;
             const entryTime = new Date(ticket.entry_time);
-            const exitTime = ticket.exit_time ? new Date(ticket.exit_time) : new Date();
-            const duration = ticket.duration_minutes || 0;
+            const isEntryReceipt = payment.payment_method === 'PENDING';
             
-            const receiptData = encoder
-                .initialize()
-                .align('center')
-                .bold(true)
-                .size('normal')
-                .line('================================')
-                .line('LANAO DEL NORTE')
-                .line('PARKING TICKETING SYSTEM')
-                .line('================================')
-                .newline()
-                .bold(false)
-                .align('left')
-                .line(`Receipt No: ${payment.receipt_number}`)
-                .line(`Ticket No : ${ticket.ticket_id}`)
-                .line('--------------------------------')
-                .line(`Plate No  : ${ticket.plate_number || 'N/A'}`)
-                .line(`Zone      : ${ticket.parking_zone}`)
-                .line(`Rate Type : ${ticket.rate_type.toUpperCase()}`)
-                .line('--------------------------------')
-                .line(`Entry Time: ${entryTime.toLocaleString('en-PH', { 
-                    month: 'short', day: '2-digit', year: 'numeric',
-                    hour: '2-digit', minute: '2-digit', hour12: true 
-                })}`)
-                .line(`Exit Time : ${exitTime.toLocaleString('en-PH', { 
-                    month: 'short', day: '2-digit', year: 'numeric',
-                    hour: '2-digit', minute: '2-digit', hour12: true 
-                })}`)
-                .line(`Duration  : ${Math.floor(duration / 60)}h ${duration % 60}m`)
-                .line('--------------------------------')
-                .align('right')
-                .bold(true)
-                .size('normal')
-                .line(`AMOUNT: ₱${parseFloat(payment.amount).toFixed(2)}`)
-                .bold(false)
-                .size('normal')
-                .align('left')
-                .line('--------------------------------')
-                .line(`Payment   : ${payment.payment_method.toUpperCase()}`)
-                .line(`Collected : ${payment.collector.name}`)
-                .line(`Date/Time : ${new Date(payment.paid_at).toLocaleString('en-PH')}`)
-                .newline()
-                .align('center')
-                .qrcode(payment.receipt_number, 1, 4, 'h')
-                .newline()
-                .line('Scan QR for verification')
-                .newline()
-                .line('Thank you!')
-                .line('Drive safely!')
-                .newline()
-                .newline()
-                .newline()
-                .cut('partial')
+            let receiptData;
+            
+            if (isEntryReceipt) {
+                // ENTRY RECEIPT - No exit time, no amount, QR contains ticket_id for scanning
+                const qrData = JSON.stringify({
+                    ticket_id: ticket.ticket_id,
+                    plate: ticket.plate_number,
+                    entry: ticket.entry_time,
+                    type: 'hourly_entry'
+                });
+                
+                receiptData = encoder
+                    .initialize()
+                    .align('center')
+                    .bold(true)
+                    .size('normal')
+                    .line('================================')
+                    .line('LANAO DEL NORTE')
+                    .line('PARKING TICKETING SYSTEM')
+                    .line('================================')
+                    .newline()
+                    .bold(false)
+                    .align('left')
+                    .line(`Receipt No: ${payment.receipt_number}`)
+                    .line(`Ticket No : ${ticket.ticket_id}`)
+                    .line('--------------------------------')
+                    .line(`Plate No  : ${ticket.plate_number || 'N/A'}`)
+                    .line(`Zone      : ${ticket.parking_zone}`)
+                    .line(`Rate Type : ${ticket.rate_type.toUpperCase()}`)
+                    .line('--------------------------------')
+                    .line(`Entry Time: ${entryTime.toLocaleString('en-PH', { 
+                        month: 'short', day: '2-digit', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit', hour12: true 
+                    })}`)
+                    .line('--------------------------------')
+                    .align('center')
+                    .bold(true)
+                    .line('** ENTRY TICKET **')
+                    .line('STATUS: ACTIVE - UNPAID')
+                    .bold(false)
+                    .newline()
+                    .line('Pay when exiting')
+                    .line('--------------------------------')
+                    .align('left')
+                    .line(`Collected : ${payment.collector.name}`)
+                    .line(`Date/Time : ${new Date(payment.paid_at).toLocaleString('en-PH')}`)
+                    .newline()
+                    .align('center')
+                    .qrcode(qrData, 1, 4, 'h')
+                    .newline()
+                    .bold(true)
+                    .line('SCAN THIS QR ON EXIT')
+                    .bold(false)
+                    .newline()
+                    .line('Keep this ticket safe!')
+                    .newline()
+                    .newline()
+                    .newline()
+                    .cut('partial')
+                    .encode();
+            } else {
+                // PAYMENT RECEIPT - Has exit time and amount
+                const exitTime = ticket.exit_time ? new Date(ticket.exit_time) : new Date();
+                const duration = ticket.duration_minutes || 0;
+                
+                receiptData = encoder
+                    .initialize()
+                    .align('center')
+                    .bold(true)
+                    .size('normal')
+                    .line('================================')
+                    .line('LANAO DEL NORTE')
+                    .line('PARKING TICKETING SYSTEM')
+                    .line('================================')
+                    .newline()
+                    .bold(false)
+                    .align('left')
+                    .line(`Receipt No: ${payment.receipt_number}`)
+                    .line(`Ticket No : ${ticket.ticket_id}`)
+                    .line('--------------------------------')
+                    .line(`Plate No  : ${ticket.plate_number || 'N/A'}`)
+                    .line(`Zone      : ${ticket.parking_zone}`)
+                    .line(`Rate Type : ${ticket.rate_type.toUpperCase()}`)
+                    .line('--------------------------------')
+                    .line(`Entry Time: ${entryTime.toLocaleString('en-PH', { 
+                        month: 'short', day: '2-digit', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit', hour12: true 
+                    })}`)
+                    .line(`Exit Time : ${exitTime.toLocaleString('en-PH', { 
+                        month: 'short', day: '2-digit', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit', hour12: true 
+                    })}`)
+                    .line(`Duration  : ${Math.floor(duration / 60)}h ${duration % 60}m`)
+                    .line('--------------------------------')
+                    .align('right')
+                    .bold(true)
+                    .size('normal')
+                    .line(`AMOUNT: P${parseFloat(payment.amount).toFixed(2)}`)
+                    .bold(false)
+                    .size('normal')
+                    .align('left')
+                    .line('--------------------------------')
+                    .line(`Payment   : ${payment.payment_method.toUpperCase()}`)
+                    .line(`Collected : ${payment.collector.name}`)
+                    .line(`Date/Time : ${new Date(payment.paid_at).toLocaleString('en-PH')}`)
+                    .newline()
+                    .align('center')
+                    .qrcode(payment.receipt_number, 1, 4, 'h')
+                    .newline()
+                    .line('Scan QR for verification')
+                    .newline()
+                    .line('Thank you!')
+                    .line('Drive safely!')
+                    .newline()
+                    .newline()
+                    .newline()
+                    .cut('partial')
+                    .encode();
+            }
                 .encode();
 
             // Convert to DataView for BLE write
