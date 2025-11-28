@@ -65,7 +65,7 @@ class TicketController extends Controller
             'plate_number' => 'nullable|string|max:20',
             'parking_zone' => 'required|string',
             'rate_type' => 'required|in:hourly,flat_rate,overnight',
-            'photo' => 'nullable|image|max:2048',
+            'photo' => 'nullable|image', // Allow any size
         ]);
 
         $rateSetting = RateSetting::where('rate_type', $validated['rate_type'])->first();
@@ -92,10 +92,10 @@ class TicketController extends Controller
             'photo_path' => $photoPath,
         ]);
 
-        // Hourly: Redirect to dashboard (no payment needed now)
+        // Hourly: Redirect to entry receipt (1st receipt with QR)
         // Flat/Overnight: Redirect to payment page
         if ($validated['rate_type'] === 'hourly') {
-            return redirect()->route('dashboard')->with('success', 'Hourly ticket generated! Vehicle can park now.');
+            return redirect()->route('tickets.entry-receipt', $ticket->id);
         }
         
         return redirect()->route('tickets.payment', $ticket->id);
@@ -163,6 +163,57 @@ class TicketController extends Controller
     {
         return Inertia::render('tickets/receipt', [
             'payment' => $payment->load(['ticket', 'collector']),
+        ]);
+    }
+
+    /**
+     * Show entry receipt (1st receipt for hourly - before payment)
+     */
+    public function showEntryReceipt(Ticket $ticket)
+    {
+        return Inertia::render('tickets/entry-receipt', [
+            'ticket' => $ticket->load('agent'),
+        ]);
+    }
+
+    /**
+     * Scan QR code and find ticket
+     */
+    public function scanTicket(Request $request)
+    {
+        $validated = $request->validate([
+            'ticket_id' => 'required|string',
+        ]);
+
+        $ticket = Ticket::where('ticket_id', $validated['ticket_id'])->first();
+
+        if (!$ticket) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ticket not found',
+            ], 404);
+        }
+
+        // Return ticket status and data
+        return response()->json([
+            'success' => true,
+            'ticket' => [
+                'id' => $ticket->id,
+                'ticket_id' => $ticket->ticket_id,
+                'plate_number' => $ticket->plate_number,
+                'parking_zone' => $ticket->parking_zone,
+                'rate_type' => $ticket->rate_type,
+                'price' => $ticket->price,
+                'entry_time' => $ticket->entry_time,
+                'exit_time' => $ticket->exit_time,
+                'status' => $ticket->status,
+            ],
+            'payment' => $ticket->payment ? [
+                'receipt_number' => $ticket->payment->receipt_number,
+                'amount' => $ticket->payment->amount,
+                'payment_method' => $ticket->payment->payment_method,
+                'paid_at' => $ticket->payment->paid_at,
+            ] : null,
         ]);
     }
 
