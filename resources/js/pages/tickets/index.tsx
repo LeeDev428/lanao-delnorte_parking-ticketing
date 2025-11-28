@@ -153,11 +153,22 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
         stopScanner();
 
         try {
-            const parsed = JSON.parse(qrData);
-            const ticketId = parsed.ticket_id;
+            let ticketId: string | null = null;
+            
+            // Try to parse as JSON first
+            try {
+                const parsed = JSON.parse(qrData);
+                ticketId = parsed.ticket_id || null;
+            } catch {
+                // If not JSON, check if it's a plain ticket ID (e.g., "P25-0001")
+                if (qrData.match(/^P\d{2}-\d{4,}$/)) {
+                    ticketId = qrData;
+                }
+            }
 
             if (!ticketId) {
-                setScanError('Invalid QR code format');
+                console.log('QR Data received:', qrData);
+                setScanError('Invalid QR code format. Expected parking ticket QR.');
                 return;
             }
 
@@ -193,8 +204,8 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
                 setShowPaidModal(true);
             }
         } catch (error) {
-            console.error('QR parse error:', error);
-            setScanError('Invalid QR code. Please scan a valid parking ticket.');
+            console.error('QR scan error:', error);
+            setScanError('Failed to process QR code. Please try again.');
         }
     };
 
