@@ -1,11 +1,20 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Clock, Car, MapPin, CreditCard, XCircle, CheckCircle, ChevronLeft, ChevronRight, Filter, Search, X } from 'lucide-react';
+import { Clock, Car, MapPin, CreditCard, XCircle, CheckCircle, ChevronLeft, ChevronRight, Filter, Search, X, Camera, QrCode, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import jsQR from 'jsqr';
 
 interface Ticket {
     id: number;
@@ -50,6 +59,19 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
     const { props } = usePage();
     const successMessage = props.success as string | undefined;
 
+    // QR Scanner states
+    const [showScanner, setShowScanner] = useState(false);
+    const [scanning, setScanning] = useState(false);
+    const [scanError, setScanError] = useState<string | null>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const streamRef = useRef<MediaStream | null>(null);
+    const animationRef = useRef<number | null>(null);
+
+    // Modal for already paid/inactive ticket
+    const [showPaidModal, setShowPaidModal] = useState(false);
+    const [scannedTicket, setScannedTicket] = useState<any>(null);
+
     const applyFilters = () => {
         router.get('/tickets', {
             search: searchTerm || undefined,
@@ -62,6 +84,128 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
         setSelectedRateType('all');
         router.get('/tickets', {}, { preserveState: true });
     };
+
+    // Start QR Scanner
+    const startScanner = async () => {
+        setScanError(null);
+        setShowScanner(true);
+        setScanning(true);
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment' }
+            });
+            streamRef.current = stream;
+
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+                videoRef.current.play();
+                scanQRCode();
+            }
+        } catch (error) {
+            console.error('Camera access error:', error);
+            setScanError('Unable to access camera. Please ensure camera permissions are granted.');
+            setScanning(false);
+        }
+    };
+
+    // Stop QR Scanner
+    const stopScanner = () => {
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach(track => track.stop());
+            streamRef.current = null;
+        }
+        if (animationRef.current) {
+            cancelAnimationFrame(animationRef.current);
+            animationRef.current = null;
+        }
+        setShowScanner(false);
+        setScanning(false);
+    };
+
+    // Scan QR Code from video frame
+    const scanQRCode = () => {
+        if (!videoRef.current || !canvasRef.current) return;
+
+        const video = videoRef.current;
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) return;
+
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+            if (code) {
+                handleQRCodeScanned(code.data);
+                return;
+            }
+        }
+
+        animationRef.current = requestAnimationFrame(scanQRCode);
+    };
+
+    // Handle scanned QR code
+    const handleQRCodeScanned = async (qrData: string) => {
+        stopScanner();
+
+        try {
+            const parsed = JSON.parse(qrData);
+            const ticketId = parsed.ticket_id;
+
+            if (!ticketId) {
+                setScanError('Invalid QR code format');
+                return;
+            }
+
+            // Call API to get ticket status
+            const response = await fetch('/tickets/scan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                },
+                body: JSON.stringify({ ticket_id: ticketId }),
+            });
+
+            const data = await response.json();
+
+            if (!data.success) {
+                setScanError(data.message || 'Ticket not found');
+                return;
+            }
+
+            const ticket = data.ticket;
+
+            // Check if ticket is active
+            if (ticket.status === 'active') {
+                // Redirect to payment page
+                router.visit(`/tickets/${ticket.id}/payment`);
+            } else {
+                // Show modal for already paid/inactive ticket
+                setScannedTicket({
+                    ...ticket,
+                    payment: data.payment,
+                });
+                setShowPaidModal(true);
+            }
+        } catch (error) {
+            console.error('QR parse error:', error);
+            setScanError('Invalid QR code. Please scan a valid parking ticket.');
+        }
+    };
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            stopScanner();
+        };
+    }, []);
 
     useEffect(() => {
         if (successMessage) {
@@ -120,8 +264,18 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
                             <h1 className="text-2xl font-bold">Active Tickets</h1>
                             <p className="text-blue-100">Currently parked vehicles</p>
                         </div>
-                        <div className="bg-white/20 px-4 py-2 rounded-lg">
-                            <p className="text-3xl font-bold">{tickets?.total || 0}</p>
+                        <div className="flex items-center gap-3">
+                            {/* Scan QR Button */}
+                            <Button
+                                onClick={startScanner}
+                                className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold"
+                            >
+                                <QrCode className="h-5 w-5 mr-2" />
+                                Scan QR
+                            </Button>
+                            <div className="bg-white/20 px-4 py-2 rounded-lg">
+                                <p className="text-3xl font-bold">{tickets?.total || 0}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -367,6 +521,147 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
                     )}
                 </div>
             </div>
+
+            {/* QR Scanner Modal */}
+            <Dialog open={showScanner} onOpenChange={(open) => !open && stopScanner()}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <QrCode className="h-5 w-5" />
+                            Scan Parking Ticket QR
+                        </DialogTitle>
+                        <DialogDescription>
+                            Point your camera at the QR code on the parking ticket
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="relative">
+                        {scanError && (
+                            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                                {scanError}
+                            </div>
+                        )}
+                        
+                        <div className="relative aspect-square bg-black rounded-lg overflow-hidden">
+                            <video
+                                ref={videoRef}
+                                className="w-full h-full object-cover"
+                                playsInline
+                                muted
+                            />
+                            <canvas ref={canvasRef} className="hidden" />
+                            
+                            {/* Scan overlay */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-48 h-48 border-2 border-yellow-400 rounded-lg">
+                                    <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-yellow-400 rounded-tl-lg"></div>
+                                    <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-yellow-400 rounded-tr-lg"></div>
+                                    <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-yellow-400 rounded-bl-lg"></div>
+                                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-yellow-400 rounded-br-lg"></div>
+                                </div>
+                            </div>
+                            
+                            {scanning && (
+                                <div className="absolute bottom-4 left-0 right-0 text-center">
+                                    <span className="px-3 py-1 bg-blue-600 text-white text-sm rounded-full">
+                                        Scanning...
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button variant="outline" onClick={stopScanner} className="w-full">
+                            Cancel
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Already Paid/Inactive Ticket Modal */}
+            <Dialog open={showPaidModal} onOpenChange={setShowPaidModal}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="bg-red-100 dark:bg-red-900/20 p-3 rounded-full">
+                                <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
+                            </div>
+                            <DialogTitle className="text-xl">Ticket Already Processed</DialogTitle>
+                        </div>
+                        <DialogDescription>
+                            This ticket is no longer active. It has already been paid or cancelled.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {scannedTicket && (
+                        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-3">
+                            <div className="flex justify-between">
+                                <span className="text-gray-600 dark:text-gray-400">Ticket ID:</span>
+                                <span className="font-semibold">{scannedTicket.ticket_id}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600 dark:text-gray-400">Plate:</span>
+                                <span className="font-semibold">{scannedTicket.plate_number || 'N/A'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600 dark:text-gray-400">Status:</span>
+                                <span className={`font-semibold uppercase ${
+                                    scannedTicket.status === 'paid' ? 'text-green-600' : 'text-red-600'
+                                }`}>
+                                    {scannedTicket.status}
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600 dark:text-gray-400">Entry Time:</span>
+                                <span className="font-semibold text-xs">
+                                    {new Date(scannedTicket.entry_time).toLocaleString()}
+                                </span>
+                            </div>
+                            {scannedTicket.exit_time && (
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600 dark:text-gray-400">Exit Time:</span>
+                                    <span className="font-semibold text-xs">
+                                        {new Date(scannedTicket.exit_time).toLocaleString()}
+                                    </span>
+                                </div>
+                            )}
+                            {scannedTicket.payment && (
+                                <>
+                                    <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600 dark:text-gray-400">Receipt #:</span>
+                                            <span className="font-semibold">{scannedTicket.payment.receipt_number}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600 dark:text-gray-400">Amount Paid:</span>
+                                            <span className="font-bold text-green-600">
+                                                ₱{Number(scannedTicket.payment.amount).toFixed(2)}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600 dark:text-gray-400">Payment Method:</span>
+                                            <span className="font-semibold uppercase">{scannedTicket.payment.payment_method}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600 dark:text-gray-400">Paid At:</span>
+                                            <span className="font-semibold text-xs">
+                                                {new Date(scannedTicket.payment.paid_at).toLocaleString()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
+
+                    <DialogFooter>
+                        <Button onClick={() => setShowPaidModal(false)} className="w-full">
+                            Close
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }
