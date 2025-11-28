@@ -121,7 +121,7 @@ export default function NewTicket({ rateSettings, parkingZones }: NewTicketProps
                         {/* Photo Upload (Optional) */}
                         <div>
                             <Label htmlFor="photo" className="text-sm sm:text-base font-semibold">
-                                Scan Plate
+                                Scan Plate (Optional)
                             </Label>
                             <div className="mt-2">
                                 {photoPreview ? (
@@ -146,12 +146,13 @@ export default function NewTicket({ rateSettings, parkingZones }: NewTicketProps
                                     <label className="flex flex-col items-center justify-center w-full h-40 sm:h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                                         <Camera className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mb-2" />
                                         <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 px-4 text-center">
-                                            Click to upload plate photo
+                                            Click to upload plate photo (any size)
                                         </span>
                                         <input
                                             id="photo"
                                             type="file"
                                             accept="image/*"
+                                            capture="environment"
                                             onChange={handlePhotoChange}
                                             className="hidden"
                                         />
