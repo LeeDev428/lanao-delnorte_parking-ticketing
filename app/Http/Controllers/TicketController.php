@@ -120,8 +120,12 @@ class TicketController extends Controller
             'payment_method' => 'required|in:cash,gcash,card',
         ]);
 
-        // Calculate final amount
+        // Get rate setting for duration
+        $rateSetting = RateSetting::where('rate_type', $ticket->rate_type)->first();
+
+        // Calculate final amount and exit time based on rate type
         if ($ticket->rate_type === 'hourly') {
+            // Hourly: exit time is NOW, duration calculated from actual parking time
             $ticket->exit_time = now();
             $entryTime = \Carbon\Carbon::parse($ticket->entry_time);
             $exitTime = \Carbon\Carbon::parse($ticket->exit_time);
@@ -130,11 +134,24 @@ class TicketController extends Controller
             
             // Calculate hours (round up) - e.g., 61 min = 2 hours = ₱80
             $hours = ceil($durationMinutes / 60);
-            $amount = $hours * 40; // ₱40 per hour
+            $amount = $hours * $ticket->price; // Use ticket's saved price
             
             $ticket->save();
         } else {
+            // Flat rate / Overnight: exit time is entry_time + duration_minutes from rate_settings
             $amount = $ticket->price;
+            $entryTime = \Carbon\Carbon::parse($ticket->entry_time);
+            
+            // Calculate exit time based on rate setting duration
+            if ($rateSetting && $rateSetting->duration_minutes > 0) {
+                $ticket->exit_time = $entryTime->copy()->addMinutes($rateSetting->duration_minutes);
+                $ticket->duration_minutes = $rateSetting->duration_minutes;
+            } else {
+                $ticket->exit_time = now();
+                $ticket->duration_minutes = 0;
+            }
+            
+            $ticket->save();
         }
 
         // Create payment
