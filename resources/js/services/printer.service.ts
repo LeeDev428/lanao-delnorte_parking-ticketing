@@ -274,7 +274,6 @@ export class ThermalPrinterService {
                     .cut('partial')
                     .encode();
             }
-                .encode();
 
             // Convert to DataView for BLE write
             const dataView = new DataView(receiptData.buffer);
