@@ -158,13 +158,9 @@ export class ThermalPrinterService {
             let receiptData;
             
             if (isEntryReceipt) {
-                // ENTRY RECEIPT - No exit time, no amount, QR contains ticket_id for scanning
-                const qrData = JSON.stringify({
-                    ticket_id: ticket.ticket_id,
-                    plate: ticket.plate_number,
-                    entry: ticket.entry_time,
-                    type: 'hourly_entry'
-                });
+                // ENTRY RECEIPT - No exit time, no amount, QR contains just ticket_id for scanning
+                // Using simple JSON format that thermal printers can handle
+                const qrData = `{"ticket_id":"${ticket.ticket_id}"}`;
                 
                 receiptData = encoder
                     .initialize()
