@@ -58,6 +58,7 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
     const [showFilters, setShowFilters] = useState(false);
     const { props } = usePage();
     const successMessage = props.success as string | undefined;
+    const flashScannedTicket = props.flash?.scannedTicket as any | undefined;
 
     // QR Scanner states
     const [scanning, setScanning] = useState(false);
@@ -66,6 +67,14 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
     // Modal for already paid/inactive ticket
     const [showPaidModal, setShowPaidModal] = useState(false);
     const [scannedTicket, setScannedTicket] = useState<any>(null);
+
+    // Check for flashed scanned ticket (already paid/cancelled)
+    useEffect(() => {
+        if (flashScannedTicket) {
+            setScannedTicket(flashScannedTicket);
+            setShowPaidModal(true);
+        }
+    }, [flashScannedTicket]);
 
     const applyFilters = () => {
         router.get('/tickets', {
@@ -172,7 +181,7 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
             }
 
             if (!ticketId) {
-                setScanError(`Invalid QR code. Data: "${qrData.substring(0, 50)}..."`);
+                setScanError(`Invalid QR code format. Please scan a valid parking ticket.`);
                 return;
             }
 
@@ -184,80 +193,25 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
                 return;
             }
 
-            // Use XMLHttpRequest for better compatibility with Capacitor WebView
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', '/tickets/scan', true);
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.setRequestHeader('Accept', 'application/json');
-            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-            
-            // Get CSRF token from cookie (Laravel sets it as XSRF-TOKEN)
-            const getCookie = (name: string): string | null => {
-                const value = `; ${document.cookie}`;
-                const parts = value.split(`; ${name}=`);
-                if (parts.length === 2) {
-                    const cookieValue = parts.pop()?.split(';').shift();
-                    return cookieValue ? decodeURIComponent(cookieValue) : null;
-                }
-                return null;
-            };
-            
-            const xsrfToken = getCookie('XSRF-TOKEN');
-            if (xsrfToken) {
-                xhr.setRequestHeader('X-XSRF-TOKEN', xsrfToken);
-            }
-            
-            // Also try meta tag as fallback
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-            if (csrfToken) {
-                xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
-            }
-            
-            xhr.withCredentials = true; // Important for cookies
-
-            xhr.onload = function() {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    try {
-                        const data = JSON.parse(xhr.responseText);
-                        
-                        if (!data.success) {
-                            setScanError(data.message || 'Ticket not found');
-                            return;
-                        }
-
-                        const ticket = data.ticket;
-
-                        // Check ticket status and handle accordingly
-                        if (ticket.status === 'active') {
-                            router.visit(`/tickets/${ticket.id}/payment`);
-                        } else if (ticket.status === 'pending_payment') {
-                            router.visit(`/tickets/${ticket.id}/payment`);
-                        } else {
-                            setScannedTicket({
-                                ...ticket,
-                                payment: data.payment,
-                            });
-                            setShowPaidModal(true);
-                        }
-                    } catch (parseError) {
-                        console.error('JSON parse error:', parseError);
-                        setScanError('Invalid response from server');
+            // Use Inertia router.post to handle the scan with proper CSRF
+            // The backend will return a redirect response
+            router.post('/tickets/scan', { ticket_id: ticketId }, {
+                preserveState: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    // Backend will redirect us to the payment page
+                },
+                onError: (errors) => {
+                    console.error('Scan errors:', errors);
+                    if (errors.ticket_id) {
+                        setScanError(errors.ticket_id);
+                    } else if (errors.message) {
+                        setScanError(errors.message);
+                    } else {
+                        setScanError('Failed to process ticket. Please try again.');
                     }
-                } else if (xhr.status === 404) {
-                    setScanError(`Ticket "${ticketId}" not found in the system.`);
-                } else if (xhr.status === 419) {
-                    setScanError('Session expired. Please refresh the page and try again.');
-                } else {
-                    setScanError(`Server error (${xhr.status}). Please try again.`);
-                }
-            };
-
-            xhr.onerror = function() {
-                console.error('XHR error');
-                setScanError('Network error. Please check your connection.');
-            };
-
-            xhr.send(JSON.stringify({ ticket_id: ticketId }));
+                },
+            });
         } catch (error: any) {
             console.error('QR scan error:', error);
             setScanError(`Error: ${error.message || 'Failed to process QR code'}`);
