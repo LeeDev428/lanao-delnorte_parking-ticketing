@@ -86,6 +86,17 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
         setScanning(true);
 
         try {
+            // Check if Google Barcode Scanner module is available
+            const { available } = await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
+            
+            if (!available) {
+                // Install the module first
+                setScanError('Installing scanner module... Please wait and try again in a moment.');
+                await BarcodeScanner.installGoogleBarcodeScannerModule();
+                setScanning(false);
+                return;
+            }
+
             // Check and request camera permission
             const { camera } = await BarcodeScanner.checkPermissions();
             
@@ -118,6 +129,9 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
             // Check if it's a web environment (not Capacitor native)
             if (error.message?.includes('not implemented') || error.code === 'UNIMPLEMENTED') {
                 setScanError('QR scanning is only available on the mobile app. Please use the APK version.');
+            } else if (error.message?.includes('canceled') || error.code === 'CANCELED') {
+                // User cancelled - no error needed
+                setScanError(null);
             } else {
                 setScanError(error.message || 'Failed to start scanner. Please try again.');
             }
