@@ -1,11 +1,11 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Clock, Car, MapPin, CreditCard, XCircle, CheckCircle, ChevronLeft, ChevronRight, Filter, Search, X, Camera, QrCode, AlertTriangle, Loader2 } from 'lucide-react';
+import { Clock, Car, MapPin, CreditCard, XCircle, CheckCircle, ChevronLeft, ChevronRight, Filter, Search, X, QrCode, AlertTriangle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -60,7 +60,6 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
     const successMessage = props.success as string | undefined;
 
     // QR Scanner states
-    const [showScanner, setShowScanner] = useState(false);
     const [scanning, setScanning] = useState(false);
     const [scanError, setScanError] = useState<string | null>(null);
 
@@ -81,69 +80,58 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
         router.get('/tickets', {}, { preserveState: true });
     };
 
-    // Start QR Scanner
+    // Start QR Scanner using native Capacitor plugin
     const startScanner = async () => {
         setScanError(null);
-        setShowScanner(true);
         setScanning(true);
 
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'environment' }
-            });
-            streamRef.current = stream;
-
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-                videoRef.current.play();
-                scanQRCode();
+            // Check and request camera permission
+            const { camera } = await BarcodeScanner.checkPermissions();
+            
+            if (camera !== 'granted') {
+                const permResult = await BarcodeScanner.requestPermissions();
+                if (permResult.camera !== 'granted') {
+                    setScanError('Camera permission is required to scan QR codes. Please enable it in app settings.');
+                    setScanning(false);
+                    return;
+                }
             }
-        } catch (error) {
-            console.error('Camera access error:', error);
-            setScanError('Unable to access camera. Please ensure camera permissions are granted.');
+
+            // Start scanning
+            const result = await BarcodeScanner.scan({
+                formats: [BarcodeFormat.QrCode],
+            });
+
             setScanning(false);
+
+            if (result.barcodes.length > 0) {
+                const qrData = result.barcodes[0].rawValue;
+                if (qrData) {
+                    await handleQRCodeScanned(qrData);
+                }
+            }
+        } catch (error: any) {
+            console.error('Scanner error:', error);
+            setScanning(false);
+            
+            // Check if it's a web environment (not Capacitor native)
+            if (error.message?.includes('not implemented') || error.code === 'UNIMPLEMENTED') {
+                setScanError('QR scanning is only available on the mobile app. Please use the APK version.');
+            } else {
+                setScanError(error.message || 'Failed to start scanner. Please try again.');
+            }
         }
     };
 
     // Stop QR Scanner
-    const stopScanner = () => {
-        if (streamRef.current) {
-            streamRef.current.getTracks().forEach(track => track.stop());
-            streamRef.current = null;
+    const stopScanner = async () => {
+        try {
+            await BarcodeScanner.stopScan();
+        } catch (error) {
+            // Ignore errors when stopping
         }
-        if (animationRef.current) {
-            cancelAnimationFrame(animationRef.current);
-            animationRef.current = null;
-        }
-        setShowScanner(false);
         setScanning(false);
-    };
-
-    // Scan QR Code from video frame
-    const scanQRCode = () => {
-        if (!videoRef.current || !canvasRef.current) return;
-
-        const video = videoRef.current;
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
-
-        if (!ctx) return;
-
-        if (video.readyState === video.HAVE_ENOUGH_DATA) {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-            if (code) {
-                handleQRCodeScanned(code.data);
-                return;
-            }
-        }
-
-        animationRef.current = requestAnimationFrame(scanQRCode);
     };
 
     // Handle scanned QR code
@@ -518,57 +506,47 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
                 </div>
             </div>
 
-            {/* QR Scanner Modal */}
-            <Dialog open={showScanner} onOpenChange={(open) => !open && stopScanner()}>
+            {/* QR Scanner Loading/Error Modal */}
+            <Dialog open={scanning || !!scanError} onOpenChange={(open) => {
+                if (!open) {
+                    stopScanner();
+                    setScanError(null);
+                }
+            }}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <QrCode className="h-5 w-5" />
-                            Scan Parking Ticket QR
+                            {scanning ? 'Scanning...' : 'Scanner Error'}
                         </DialogTitle>
                         <DialogDescription>
-                            Point your camera at the QR code on the parking ticket
+                            {scanning 
+                                ? 'Point your camera at the QR code on the parking ticket'
+                                : 'There was a problem with the scanner'
+                            }
                         </DialogDescription>
                     </DialogHeader>
                     
-                    <div className="relative">
-                        {scanError && (
-                            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                    <div className="py-6">
+                        {scanning ? (
+                            <div className="flex flex-col items-center gap-4">
+                                <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+                                <p className="text-gray-600 dark:text-gray-400">
+                                    Camera is active. Scan a QR code...
+                                </p>
+                            </div>
+                        ) : scanError && (
+                            <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
                                 {scanError}
                             </div>
                         )}
-                        
-                        <div className="relative aspect-square bg-black rounded-lg overflow-hidden">
-                            <video
-                                ref={videoRef}
-                                className="w-full h-full object-cover"
-                                playsInline
-                                muted
-                            />
-                            <canvas ref={canvasRef} className="hidden" />
-                            
-                            {/* Scan overlay */}
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="w-48 h-48 border-2 border-yellow-400 rounded-lg">
-                                    <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-yellow-400 rounded-tl-lg"></div>
-                                    <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-yellow-400 rounded-tr-lg"></div>
-                                    <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-yellow-400 rounded-bl-lg"></div>
-                                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-yellow-400 rounded-br-lg"></div>
-                                </div>
-                            </div>
-                            
-                            {scanning && (
-                                <div className="absolute bottom-4 left-0 right-0 text-center">
-                                    <span className="px-3 py-1 bg-blue-600 text-white text-sm rounded-full">
-                                        Scanning...
-                                    </span>
-                                </div>
-                            )}
-                        </div>
                     </div>
 
                     <DialogFooter>
-                        <Button variant="outline" onClick={stopScanner} className="w-full">
+                        <Button variant="outline" onClick={() => {
+                            stopScanner();
+                            setScanError(null);
+                        }} className="w-full">
                             Cancel
                         </Button>
                     </DialogFooter>
