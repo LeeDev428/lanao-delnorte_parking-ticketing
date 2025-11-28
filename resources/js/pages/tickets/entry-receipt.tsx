@@ -35,13 +35,8 @@ export default function EntryReceipt({ ticket }: EntryReceiptProps) {
     useEffect(() => {
         const generateQR = async () => {
             try {
-                // QR contains ticket_id that can be scanned to retrieve ticket info
-                const qrData = JSON.stringify({
-                    ticket_id: ticket.ticket_id,
-                    plate: ticket.plate_number,
-                    entry: ticket.entry_time,
-                    type: 'hourly_entry'
-                });
+                // Simple JSON with just ticket_id for reliable scanning
+                const qrData = `{"ticket_id":"${ticket.ticket_id}"}`;
                 const qrImage = await QRCode.toDataURL(qrData, {
                     width: 250,
                     margin: 1,
