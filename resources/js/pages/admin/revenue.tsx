@@ -140,9 +140,9 @@ export default function Revenue({ revenue }: RevenueProps) {
 
                 {/* Payment Methods Breakdown */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div className="p-6 border-b border-gray-200">
+                            <h3 className="text-lg font-semibold text-gray-900">
                                 Revenue by Payment Method
                             </h3>
                         </div>
@@ -174,9 +174,9 @@ export default function Revenue({ revenue }: RevenueProps) {
                     </div>
 
                     {/* Payment Method Bar Chart */}
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div className="p-6 border-b border-gray-200">
+                            <h3 className="text-lg font-semibold text-gray-900">
                                 Payment Distribution
                             </h3>
                         </div>
@@ -276,10 +276,10 @@ export default function Revenue({ revenue }: RevenueProps) {
                 </div>
 
                 {/* Recent Transactions */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                    <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div className="p-6 border-b border-gray-200">
                         <div className="flex justify-between items-center">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            <h3 className="text-lg font-semibold text-gray-900">
                                 Recent Transactions
                             </h3>
                             
@@ -291,14 +291,14 @@ export default function Revenue({ revenue }: RevenueProps) {
                                         type="date"
                                         value={startDate}
                                         onChange={(e) => setStartDate(e.target.value)}
-                                        className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white"
+                                        className="px-3 py-1.5 border border-gray-300 rounded-lg bg-white text-sm text-gray-900"
                                     />
                                     <span className="text-gray-500 text-sm">to</span>
                                     <input
                                         type="date"
                                         value={endDate}
                                         onChange={(e) => setEndDate(e.target.value)}
-                                        className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white"
+                                        className="px-3 py-1.5 border border-gray-300 rounded-lg bg-white text-sm text-gray-900"
                                     />
                                 </div>
                                 <button
@@ -309,7 +309,7 @@ export default function Revenue({ revenue }: RevenueProps) {
                                 </button>
                                 <button
                                     onClick={resetDateFilter}
-                                    className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                    className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 transition-colors"
                                 >
                                     Reset
                                 </button>
@@ -318,63 +318,63 @@ export default function Revenue({ revenue }: RevenueProps) {
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50 dark:bg-gray-700/50">
+                            <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Payment ID
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Ticket ID
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Amount
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Method
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Date & Time
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Collected By
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody className="divide-y divide-gray-200">
                                 {revenueData.recentTransactions && revenueData.recentTransactions.length > 0 ? (
                                     revenueData.recentTransactions.map((transaction) => (
                                         <tr
                                             key={transaction.id}
-                                            className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                                            className="hover:bg-gray-50 transition-colors"
                                         >
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                                <span className="text-sm font-medium text-gray-900">
                                                     #{transaction.id}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="text-sm text-gray-900 dark:text-white">
+                                                <span className="text-sm text-gray-900">
                                                     {transaction.ticket_id}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                                <span className="text-sm font-medium text-gray-900">
                                                     ₱ {Number(transaction.amount).toFixed(2)}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${
                                                     transaction.payment_method === 'cash'
-                                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                        ? 'bg-green-100 text-green-700'
                                                         : transaction.payment_method === 'gcash'
-                                                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                                                        : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                                                        ? 'bg-blue-100 text-blue-700'
+                                                        : 'bg-purple-100 text-purple-700'
                                                 }`}>
                                                     {transaction.payment_method}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                <span className="text-sm text-gray-600">
                                                     {new Date(transaction.paid_at).toLocaleString('en-US', {
                                                         month: 'short',
                                                         day: 'numeric',
@@ -385,7 +385,7 @@ export default function Revenue({ revenue }: RevenueProps) {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                <span className="text-sm text-gray-600">
                                                     {transaction.collected_by}
                                                 </span>
                                             </td>
@@ -393,7 +393,7 @@ export default function Revenue({ revenue }: RevenueProps) {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                        <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                                             No transactions found for the selected date range
                                         </td>
                                     </tr>
@@ -419,21 +419,21 @@ function RevenueCard({
     color: string;
 }) {
     const colorClasses: Record<string, string> = {
-        blue: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
-        green: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
-        purple: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
-        indigo: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400',
+        blue: 'bg-blue-100 text-blue-600',
+        green: 'bg-green-100 text-green-600',
+        purple: 'bg-purple-100 text-purple-600',
+        indigo: 'bg-indigo-100 text-indigo-600',
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
                 <div className={`p-3 rounded-lg ${colorClasses[color]}`}>{icon}</div>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+            <h3 className="text-2xl font-bold text-gray-900 mb-1">
                 ₱ {amount.toLocaleString()}
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{title}</p>
+            <p className="text-sm text-gray-600">{title}</p>
         </div>
     );
 }
@@ -462,15 +462,15 @@ function PaymentMethodRow({
             <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                     {icon}
-                    <span className="text-gray-700 dark:text-gray-300 font-medium">{method}</span>
+                    <span className="text-gray-700 font-medium">{method}</span>
                 </div>
-                <span className="font-semibold text-gray-900 dark:text-white">
+                <span className="font-semibold text-gray-900">
                     ₱ {amount.toLocaleString()}
                 </span>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                 <div
-                    className={`${colorClasses[color]} dark:${colorClasses[color]} h-full rounded-full transition-all duration-300`}
+                    className={`${colorClasses[color]} h-full rounded-full transition-all duration-300`}
                     style={{ width: `${percentage}%` }}
                 />
             </div>
