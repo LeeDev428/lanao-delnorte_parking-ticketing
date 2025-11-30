@@ -76,7 +76,7 @@ export default function Reports({ payments, summary, agentSummary, agents, filte
             ...rows.map(row => row.join(','))
         ].join('\n');
 
-        const blob = new Blob([csv], { type: 'text/csv' });  
+        const blob = new Blob([csv], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -95,8 +95,8 @@ export default function Reports({ payments, summary, agentSummary, agents, filte
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Collections Report</h1>
-                        <p className="text-sm sm:text-base text-gray-600 mt-1">View and analyze payment collections</p>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Collections Report</h1>
+                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">View and analyze payment collections</p>
                     </div>
                     <Button onClick={exportToCSV} className="w-full sm:w-auto">
                         <Download className="h-4 w-4 mr-2" />
@@ -105,10 +105,10 @@ export default function Reports({ payments, summary, agentSummary, agents, filte
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
                     <div className="flex items-center gap-2 mb-4">
-                        <Filter className="h-5 w-5 text-gray-600" />
-                        <h2 className="text-base sm:text-lg font-semibold text-gray-900">Filters</h2>
+                        <Filter className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                        <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">Filters</h2>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div>
@@ -137,7 +137,7 @@ export default function Reports({ payments, summary, agentSummary, agents, filte
                                 id="agent_id"
                                 value={agentId}
                                 onChange={(e) => setAgentId(e.target.value)}
-                                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm"
+                                className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                             >
                                 <option value="">All Agents</option>
                                 {agents.map(agent => (
@@ -187,25 +187,25 @@ export default function Reports({ payments, summary, agentSummary, agents, filte
 
                 {/* Agent Summary */}
                 {agentSummary.length > 0 && (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-                        <div className="p-4 sm:p-6 border-b border-gray-200">
-                            <h2 className="text-base sm:text-lg font-semibold text-gray-900">Collections by Agent</h2>
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+                            <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">Collections by Agent</h2>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full">
-                                <thead className="bg-gray-50">
+                                <thead className="bg-gray-50 dark:bg-gray-700">
                                     <tr>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Agent</th>
-                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Transactions</th>
-                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Amount</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Agent</th>
+                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Transactions</th>
+                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Total Amount</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-200">
+                                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                     {agentSummary.map((agent) => (
-                                        <tr key={agent.agent_id} className="hover:bg-gray-50">
-                                            <td className="px-4 py-3 text-sm font-medium text-gray-900">{agent.agent_name}</td>
-                                            <td className="px-4 py-3 text-sm text-right text-gray-600">{agent.transaction_count}</td>
-                                            <td className="px-4 py-3 text-sm text-right font-semibold text-green-600">
+                                        <tr key={agent.agent_id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                            <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{agent.agent_name}</td>
+                                            <td className="px-4 py-3 text-sm text-right text-gray-600 dark:text-gray-400">{agent.transaction_count}</td>
+                                            <td className="px-4 py-3 text-sm text-right font-semibold text-green-600 dark:text-green-400">
                                                 ₱{Number(agent.total_amount || 0).toFixed(2)}
                                             </td>
                                         </tr>
@@ -217,36 +217,36 @@ export default function Reports({ payments, summary, agentSummary, agents, filte
                 )}
 
                 {/* Payment Details */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-                    <div className="p-4 sm:p-6 border-b border-gray-200">
-                        <h2 className="text-base sm:text-lg font-semibold text-gray-900">Payment Details</h2>
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+                        <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">Payment Details</h2>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50">
+                            <thead className="bg-gray-50 dark:bg-gray-700">
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Receipt</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Plate</th>
-                                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Method</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Agent</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date/Time</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Receipt</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Plate</th>
+                                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Amount</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Method</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Agent</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Date/Time</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200">
+                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                 {payments.length > 0 ? (
                                     payments.map((payment) => (
-                                        <tr key={payment.id} className="hover:bg-gray-50">
-                                            <td className="px-4 py-3 text-sm font-mono text-gray-900">{payment.receipt_number}</td>
-                                            <td className="px-4 py-3 text-sm font-semibold text-gray-900">{payment.plate_number}</td>
-                                            <td className="px-4 py-3 text-sm text-right font-semibold text-green-600">
+                                        <tr key={payment.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                            <td className="px-4 py-3 text-sm font-mono text-gray-900 dark:text-white">{payment.receipt_number}</td>
+                                            <td className="px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white">{payment.plate_number}</td>
+                                            <td className="px-4 py-3 text-sm text-right font-semibold text-green-600 dark:text-green-400">
                                                 ₱{Number(payment.amount || 0).toFixed(2)}
                                             </td>
                                             <td className="px-4 py-3 text-sm">
                                                 <PaymentMethodBadge method={payment.payment_method} />
                                             </td>
-                                            <td className="px-4 py-3 text-sm text-gray-600">{payment.collector_name}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-600">
+                                            <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{payment.collector_name}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                                                 {new Date(payment.paid_at).toLocaleString('en-US', {
                                                     month: 'short',
                                                     day: 'numeric',
@@ -260,7 +260,7 @@ export default function Reports({ payments, summary, agentSummary, agents, filte
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
+                                        <td colSpan={6} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
                                             No payments found for selected period
                                         </td>
                                     </tr>
@@ -286,28 +286,28 @@ function SummaryCard({
     color: 'green' | 'blue' | 'purple' | 'yellow';
 }) {
     const colorClasses = {
-        green: 'bg-green-100 text-green-600',
-        blue: 'bg-blue-100 text-blue-600',
-        purple: 'bg-purple-100 text-purple-600',
-        yellow: 'bg-yellow-100 text-yellow-600',
+        green: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
+        blue: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+        purple: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
+        yellow: 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400',
     };
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
             <div className={`inline-flex p-2 sm:p-3 rounded-lg ${colorClasses[color]} mb-2 sm:mb-3`}>
                 {icon}
             </div>
-            <p className="text-xs sm:text-sm font-medium text-gray-600">{title}</p>
-            <p className="text-lg sm:text-2xl font-bold text-gray-900 mt-1 break-words">{value}</p>
+            <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
+            <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mt-1 break-words">{value}</p>
         </div>
     );
 }
 
 function PaymentMethodBadge({ method }: { method: 'cash' | 'gcash' | 'card' }) {
     const badgeClasses = {
-        cash: 'bg-green-100 text-green-700',
-        gcash: 'bg-blue-100 text-blue-700',
-        card: 'bg-purple-100 text-purple-700',
+        cash: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+        gcash: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+        card: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
     };
 
     return (
