@@ -10,6 +10,9 @@ const config: CapacitorConfig = {
     url: 'http://192.168.0.36:8000',
     cleartext: true
   },
+  android: {
+    allowMixedContent: true,
+  },
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
