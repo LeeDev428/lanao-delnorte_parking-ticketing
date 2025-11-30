@@ -116,12 +116,12 @@ export default function Login({
 
                                     {/* Remember Me */}
                                     <div className="flex items-center space-x-3">
-                                        <Checkbox
+                                        {/* <Checkbox
                                             id="remember"
                                             name="remember"
                                             tabIndex={3}
                                             className="border-gray-300 dark:border-gray-600"
-                                        />
+                                        /> */}
                                         {/* <Label 
                                             htmlFor="remember" 
                                             className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer"
