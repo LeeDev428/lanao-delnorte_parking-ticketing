@@ -25,6 +25,19 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
         ]);
+
+        // Disable CSRF for mobile app requests (Capacitor WebView has cookie issues)
+        // Routes are still protected by session authentication
+        $middleware->validateCsrfTokens(except: [
+            'tickets',
+            'tickets/*',
+            'payments',
+            'payments/*',
+            'login',
+            'logout',
+            'register',
+            'sanctum/csrf-cookie',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
