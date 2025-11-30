@@ -4,6 +4,11 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
+// CSRF cookie initialization endpoint for mobile apps
+Route::get('/sanctum/csrf-cookie', function () {
+    return response()->json(['csrf' => csrf_token()]);
+})->name('csrf-cookie');
+
 Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
