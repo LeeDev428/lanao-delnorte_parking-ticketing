@@ -112,7 +112,7 @@ export default function Login({
                                                 tabIndex={1}
                                                 autoComplete="email"
                                                 placeholder="admin@parking.com"
-                                                className="pl-10 h-12 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"
+                                                className="pl-10 h-12 bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                                             />
                                         </div>
                                         <InputError message={errors.email} />
@@ -144,7 +144,7 @@ export default function Login({
                                                 tabIndex={2}
                                                 autoComplete="current-password"
                                                 placeholder="••••••••"
-                                                className="pl-10 h-12 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"
+                                                className="pl-10 h-12 bg-gray-50 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                                             />
                                         </div>
                                         <InputError message={errors.password} />
