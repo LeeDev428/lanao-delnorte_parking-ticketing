@@ -34,7 +34,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
                 <DropdownMenuItem asChild>
-                    {/* <Link
+                    <Link
                         className="block w-full"
                         href={edit()}
                         as="button"
@@ -43,7 +43,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                     >
                         <Settings className="mr-2" />
                         Settings
-                    </Link> */}
+                    </Link>
                 </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
