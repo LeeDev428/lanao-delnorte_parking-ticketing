@@ -221,7 +221,7 @@ class AdminTicketController extends Controller
         $endDate = $request->get('end_date') ? \Carbon\Carbon::parse($request->get('end_date')) : $today->copy()->endOfMonth();
         
         // Get recent transactions with real data from payments table
-        $recentTransactions = Payment::with(['ticket', 'collectedBy'])
+        $recentTransactions = Payment::with(['ticket', 'collector'])
             ->whereBetween('paid_at', [$startDate, $endDate])
             ->latest('paid_at')
             ->limit(10)
@@ -233,7 +233,7 @@ class AdminTicketController extends Controller
                     'amount' => $payment->amount,
                     'payment_method' => $payment->payment_method,
                     'paid_at' => $payment->paid_at->format('Y-m-d H:i:s'),
-                    'collected_by' => $payment->collectedBy ? $payment->collectedBy->name : 'N/A',
+                    'collected_by' => $payment->collector ? $payment->collector->name : 'N/A',
                 ];
             });
         
