@@ -169,9 +169,9 @@ export default function Dashboard({ stats }: DashboardProps) {
                 {/* Recent Activity */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Active Tickets */}
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div className="p-6 border-b border-gray-200">
+                            <h3 className="text-lg font-semibold text-gray-900">
                                 Active Tickets
                             </h3>
                         </div>
@@ -187,7 +187,7 @@ export default function Dashboard({ stats }: DashboardProps) {
                                         />
                                     ))
                                 ) : (
-                                    <p className="text-center text-gray-500 dark:text-gray-400 py-4">
+                                    <p className="text-center text-gray-500 py-4">
                                         No active tickets
                                     </p>
                                 )}
@@ -196,9 +196,9 @@ export default function Dashboard({ stats }: DashboardProps) {
                     </div>
 
                     {/* Quick Stats */}
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div className="p-6 border-b border-gray-200">
+                            <h3 className="text-lg font-semibold text-gray-900">
                                 Today's Summary
                             </h3>
                         </div>
@@ -225,15 +225,15 @@ export default function Dashboard({ stats }: DashboardProps) {
                 </div>
 
                 {/* Revenue Overview Chart */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                    <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+                        <h3 className="text-lg font-semibold text-gray-900">
                             Revenue Overview
                         </h3>
                         <select
                             value={revenueFilter}
                             onChange={(e) => handleFilterChange(e.target.value as '7days' | '30days' | '90days')}
-                            className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="px-3 py-1.5 border border-gray-300 rounded-lg bg-white text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="7days">Last 7 Days</option>
                             <option value="30days">Last 30 Days</option>
@@ -270,19 +270,19 @@ function StatCard({
     color: 'blue' | 'green' | 'yellow' | 'purple';
 }) {
     const colorClasses = {
-        blue: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
-        green: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
-        yellow: 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400',
-        purple: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
+        blue: 'bg-blue-100 text-blue-600',
+        green: 'bg-green-100 text-green-600',
+        yellow: 'bg-yellow-100 text-yellow-600',
+        purple: 'bg-purple-100 text-purple-600',
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
                 <div className={`p-3 rounded-lg ${colorClasses[color]}`}>{icon}</div>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{value}</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{title}</p>
+            <h3 className="text-2xl font-bold text-gray-900 mb-1">{value}</h3>
+            <p className="text-sm text-gray-600">{title}</p>
         </div>
     );
 }
@@ -297,12 +297,12 @@ function ActiveTicketRow({
     status: string;
 }) {
     return (
-        <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700 last:border-0">
+        <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
             <div>
-                <p className="font-medium text-gray-900 dark:text-white">Plate: {plate}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Duration: {duration}</p>
+                <p className="font-medium text-gray-900">Plate: {plate}</p>
+                <p className="text-sm text-gray-500">Duration: {duration}</p>
             </div>
-            <span className="px-3 py-1 text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full">
+            <span className="px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
                 {status}
             </span>
         </div>
@@ -319,12 +319,12 @@ function SummaryRow({
     icon: React.ReactNode;
 }) {
     return (
-        <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700 last:border-0">
+        <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
             <div className="flex items-center space-x-3">
                 {icon}
-                <span className="text-gray-700 dark:text-gray-300">{label}</span>
+                <span className="text-gray-700">{label}</span>
             </div>
-            <span className="font-semibold text-gray-900 dark:text-white">{value}</span>
+            <span className="font-semibold text-gray-900">{value}</span>
         </div>
     );
 }
