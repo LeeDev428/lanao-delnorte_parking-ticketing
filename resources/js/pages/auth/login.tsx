@@ -7,8 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
-import { Form, Head, Link } from '@inertiajs/react';
-import { Car, Lock, Mail } from 'lucide-react';
+import { Form, Head, Link, router } from '@inertiajs/react';
+import { Car, Lock, Mail, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface LoginProps {
     status?: string;
@@ -19,6 +20,25 @@ export default function Login({
     status,
     canResetPassword,
 }: LoginProps) {
+    const [globalError, setGlobalError] = useState<string | null>(null);
+
+    // Listen for Inertia errors
+    useEffect(() => {
+        const removeErrorListener = router.on('error', (event) => {
+            console.error('Inertia error:', event);
+            setGlobalError('A network error occurred. Please check your connection.');
+        });
+
+        const removeExceptionListener = router.on('exception', (event) => {
+            console.error('Inertia exception:', event);
+            setGlobalError('An unexpected error occurred. Please try again.');
+        });
+
+        return () => {
+            removeErrorListener();
+            removeExceptionListener();
+        };
+    }, []);
     return (
         <>
             <Head title="Staff Login" />
@@ -53,10 +73,26 @@ export default function Login({
                             </div>
                         )}
 
+                        {globalError && (
+                            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center gap-3">
+                                <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+                                <p className="text-sm text-red-600 dark:text-red-400">
+                                    {globalError}
+                                </p>
+                            </div>
+                        )}
+
                         <Form
                             {...store.form()}
                             resetOnSuccess={['password']}
                             className="space-y-6"
+                            onError={(errors) => {
+                                console.error('Form errors:', errors);
+                                setGlobalError(null); // Clear network error if we got form errors
+                            }}
+                            onStart={() => {
+                                setGlobalError(null);
+                            }}
                         >
                             {({ processing, errors }) => (
                                 <>
