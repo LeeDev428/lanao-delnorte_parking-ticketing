@@ -129,7 +129,7 @@ export default function Users({ users }: UsersProps) {
             <div className="space-y-6">
                 {/* Header */}
                 <div className="flex justify-between items-center">
-                    <p className="text-gray-600 dark:text-gray-400">
+                    <p className="text-gray-600">
                         Manage admin and agent accounts
                     </p>
                     <Button
@@ -154,7 +154,7 @@ export default function Users({ users }: UsersProps) {
                                         placeholder="Search by name or email..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="pl-10 pr-4 py-2 w-full border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
                                 </div>
                             </div>
@@ -164,7 +164,7 @@ export default function Users({ users }: UsersProps) {
                                 <select
                                     value={roleFilter}
                                     onChange={(e) => setRoleFilter(e.target.value as 'all' | 'admin' | 'agent')}
-                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 >
                                     <option value="all">All Roles</option>
                                     <option value="admin">Admin</option>
@@ -177,7 +177,7 @@ export default function Users({ users }: UsersProps) {
                                 <select
                                     value={statusFilter}
                                     onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 >
                                     <option value="all">All Status</option>
                                     <option value="active">Active</option>
@@ -200,50 +200,50 @@ export default function Users({ users }: UsersProps) {
                 </div> */}
 
                 {/* Users Table (Alternative View) */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="p-6 border-b border-gray-200">
+                        <h3 className="text-lg font-semibold text-gray-900">
                             All Users
                         </h3>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50 dark:bg-gray-700/50">
+                            <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Name
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Email
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Role
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Status
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Created
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody className="divide-y divide-gray-200">
                                 {filteredUsers.length > 0 ? (
                                     filteredUsers.map((user) => (
                                         <tr
                                             key={user.id}
-                                            className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                                            className="hover:bg-gray-50 transition-colors"
                                         >
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                                <span className="text-sm font-medium text-gray-900">
                                                     {user.name}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                <span className="text-sm text-gray-600">
                                                     {user.email}
                                                 </span>
                                             </td>
@@ -254,7 +254,7 @@ export default function Users({ users }: UsersProps) {
                                                 <StatusBadge isActive={user.is_active} />
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                <span className="text-sm text-gray-600">
                                                     {new Date(user.created_at).toLocaleDateString()}
                                                 </span>
                                             </td>
@@ -262,7 +262,7 @@ export default function Users({ users }: UsersProps) {
                                                 <div className="flex gap-2">
                                                     <button 
                                                         onClick={() => handleEditUser(user)}
-                                                        className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                                                        className="text-blue-600 hover:text-blue-700"
                                                         title="Edit User"
                                                     >
                                                         <Edit className="h-4 w-4" />
@@ -270,8 +270,8 @@ export default function Users({ users }: UsersProps) {
                                                     <button 
                                                         onClick={() => toggleUserStatus(user.id)}
                                                         className={user.is_active 
-                                                            ? "text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300" 
-                                                            : "text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                                                            ? "text-red-600 hover:text-red-700" 
+                                                            : "text-green-600 hover:text-green-700"
                                                         }
                                                         title={user.is_active ? "Deactivate User" : "Activate User"}
                                                     >
@@ -283,7 +283,7 @@ export default function Users({ users }: UsersProps) {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                                             No users found matching your filters.
                                         </td>
                                     </tr>
