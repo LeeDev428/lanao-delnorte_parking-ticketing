@@ -43,7 +43,7 @@ export default function Login({
         <>
             <Head title="Staff Login" />
             
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center p-4">
                 <div className="w-full max-w-md">
                     {/* Header */}
                     <div className="text-center mb-8">
@@ -51,32 +51,32 @@ export default function Login({
                             <div className="bg-blue-600 p-3 rounded-xl shadow-lg">
                                 <Car className="h-8 w-8 text-white" />
                             </div>
-                            <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                            <span className="text-2xl font-bold text-gray-900">
                                 Lanao del Norte
                             </span>
                         </Link>
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">
                             Staff Login
                         </h1>
-                        <p className="text-gray-600 dark:text-gray-400">
+                        <p className="text-gray-600">
                             Enter your credentials to access the parking system
                         </p>
                     </div>
 
                     {/* Login Card */}
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
+                    <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
                         {status && (
-                            <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                                <p className="text-sm text-green-600 dark:text-green-400 text-center">
+                            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                                <p className="text-sm text-green-600 text-center">
                                     {status}
                                 </p>
                             </div>
                         )}
 
                         {globalError && (
-                            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center gap-3">
+                            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
                                 <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-                                <p className="text-sm text-red-600 dark:text-red-400">
+                                <p className="text-sm text-red-600">
                                     {globalError}
                                 </p>
                             </div>
@@ -98,7 +98,7 @@ export default function Login({
                                 <>
                                     {/* Email Field */}
                                     <div className="space-y-2">
-                                        <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">
+                                        <Label htmlFor="email" className="text-gray-700">
                                             Email Address
                                         </Label>
                                         <div className="relative">
@@ -121,13 +121,13 @@ export default function Login({
                                     {/* Password Field */}
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-between">
-                                            <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">
+                                            <Label htmlFor="password" className="text-gray-700">
                                                 Password
                                             </Label>
                                             {canResetPassword && (
                                                 <TextLink
                                                     href={request()}
-                                                    className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                                                    className="text-sm text-blue-600 hover:text-blue-700"
                                                     tabIndex={5}
                                                 >
                                                     Forgot password?
