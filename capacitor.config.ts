@@ -20,13 +20,13 @@ const config: CapacitorConfig = {
   appName: 'Parking Ticketing',
   webDir: 'public',
   server: {
-    androidScheme: 'http',
-    // ⚠️ CHANGE THIS IP TO YOUR COMPUTER'S IPv4 ADDRESS
-    url: 'http://192.168.0.36:8000',
-    cleartext: true
+    androidScheme: 'https',
+    // Production URL - connects to live server at tacats.live
+    url: 'https://tacats.live',
+    cleartext: false
   },
   android: {
-    allowMixedContent: true,
+    allowMixedContent: false,
   },
   plugins: {
     SplashScreen: {

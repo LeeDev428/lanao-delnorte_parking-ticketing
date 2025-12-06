@@ -1,0 +1,67 @@
+name: Deploy to Production (Hostinger)
+
+on:
+  push:
+    branches:
+      - master  # Deploy when pushing to master branch
+  workflow_dispatch:  # Allow manual deployment
+
+jobs:
+  deploy:
+    name: Deploy to Hostinger
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, dom, filter, gd, json, zip
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --optimize-autoloader --no-dev --prefer-dist
+
+      - name: Deploy to Hostinger via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /home/u314333613/domains/tacats.live/tacats/lanao-delnorte_parking-ticketing
+            
+            # Pull latest changes
+            git pull origin master
+            
+            # Install/update Composer dependencies
+            composer install --optimize-autoloader --no-dev --prefer-dist
+            
+            # Clear and cache config
+            php artisan config:clear
+            php artisan cache:clear
+            php artisan route:clear
+            php artisan view:clear
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            
+            # Run migrations (safe mode)
+            php artisan migrate --force
+            
+            # Set permissions
+            chmod -R 775 storage bootstrap/cache
+            
+            echo "Deployment completed successfully!"
+
+      - name: Deployment Success Notification
+        if: success()
+        run: echo "✅ Deployment to Hostinger completed successfully!"
+
+      - name: Deployment Failure Notification
+        if: failure()
+        run: echo "❌ Deployment failed! Check logs for details."
