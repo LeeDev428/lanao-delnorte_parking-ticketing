@@ -13,6 +13,20 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
 
+// Route-based image serving for production (no symlink dependency)
+Route::get('/storage/plates/{filename}', function ($filename) {
+    $path = storage_path('app/public/plates/' . $filename);
+    
+    if (!file_exists($path)) {
+        abort(404);
+    }
+    
+    return response()->file($path, [
+        'Content-Type' => mime_content_type($path),
+        'Cache-Control' => 'public, max-age=31536000',
+    ]);
+})->name('plates.show');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     // Agent Dashboard
     Route::get('dashboard', function () {
