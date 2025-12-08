@@ -55,7 +55,7 @@ export default function Welcome() {
                     <div className="max-w-7xl mx-auto">
                         <div className="text-center max-w-3xl mx-auto">
                             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                                Auto Ticketing System
+                                {systemSettings.name}
                             </h1>
                             <p className="text-xl text-gray-600 mb-8">
                                 Efficient, modern, and secure parking management for Lanao del Norte.
