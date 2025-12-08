@@ -370,10 +370,10 @@ export default function History({ tickets, parkingZones, filters }: HistoryProps
                                                     <td className="px-4 py-3 whitespace-nowrap">
                                                         {ticket.photo_path ? (
                                                             <img 
-                                                                src={`/storage/plates/${ticket.photo_path}`} 
+                                                                src={`/storage/${ticket.photo_path}`} 
                                                                 alt="Plate" 
                                                                 className="h-12 w-auto rounded border border-gray-300 object-cover cursor-pointer hover:opacity-80 transition-opacity"
-                                                                onClick={() => window.open(`/storage/plates/${ticket.photo_path}`, '_blank')}
+                                                                onClick={() => window.open(`/storage/${ticket.photo_path}`, '_blank')}
                                                             />
                                                         ) : (
                                                             <span className="text-xs text-gray-400">No image</span>

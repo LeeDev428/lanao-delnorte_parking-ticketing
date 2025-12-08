@@ -14,18 +14,18 @@ Route::get('/', function () {
 })->name('home');
 
 // Route-based image serving for production (no symlink dependency)
-Route::get('/storage/plates/{filename}', function ($filename) {
-    $path = storage_path('app/public/plates/' . $filename);
+Route::get('/storage/{path}', function ($path) {
+    $fullPath = storage_path('app/public/' . $path);
     
-    if (!file_exists($path)) {
+    if (!file_exists($fullPath)) {
         abort(404);
     }
     
-    return response()->file($path, [
-        'Content-Type' => mime_content_type($path),
+    return response()->file($fullPath, [
+        'Content-Type' => mime_content_type($fullPath),
         'Cache-Control' => 'public, max-age=31536000',
     ]);
-})->name('plates.show');
+})->where('path', '.*')->name('storage.serve');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Agent Dashboard
