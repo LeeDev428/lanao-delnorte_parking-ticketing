@@ -14,8 +14,9 @@ Route::get('/', function () {
 })->name('home');
 
 // Route-based image serving for production (no symlink dependency)
-Route::get('/storage/{path}', function ($path) {
-    $fullPath = storage_path('app/public/' . $path);
+// Using /plates/ instead of /storage/ because Hostinger serves /storage/ statically
+Route::get('/plates/{path}', function ($path) {
+    $fullPath = storage_path('app/public/plates/' . $path);
     
     if (!file_exists($fullPath)) {
         abort(404);
@@ -25,7 +26,7 @@ Route::get('/storage/{path}', function ($path) {
         'Content-Type' => mime_content_type($fullPath),
         'Cache-Control' => 'public, max-age=31536000',
     ]);
-})->where('path', '.*')->name('storage.serve');
+})->where('path', '.*')->name('plates.serve');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Agent Dashboard
