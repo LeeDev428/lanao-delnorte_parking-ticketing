@@ -22,6 +22,7 @@ interface Ticket {
     exit_time: string;
     duration_minutes: number | null;
     status: 'active' | 'paid' | 'cancelled';
+    photo_path: string | null;
     agent: {
         name: string;
     };
@@ -273,6 +274,9 @@ export default function Tickets({ tickets, filters = {} }: TicketsProps) {
                                         Plate Number
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Plate Image
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Zone
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -310,6 +314,18 @@ export default function Tickets({ tickets, filters = {} }: TicketsProps) {
                                             <span className="text-sm text-gray-900">
                                                 {ticket.plate_number}
                                             </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {ticket.photo_path ? (
+                                                <img 
+                                                    src={`/storage/plates/${ticket.photo_path}`} 
+                                                    alt="Plate" 
+                                                    className="h-12 w-auto rounded border border-gray-300 object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                                                    onClick={() => window.open(`/storage/plates/${ticket.photo_path}`, '_blank')}
+                                                />
+                                            ) : (
+                                                <span className="text-xs text-gray-400">No image</span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-sm text-gray-600">
