@@ -1,6 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
+import { type SharedData } from '@/types';
 import { Car, Home, Bluetooth, Printer, Loader2, Clock, MapPin } from 'lucide-react';
 import { usePrinterContext } from '@/contexts/printer-context';
 import { useState, useEffect, useRef } from 'react';
@@ -26,6 +27,7 @@ interface EntryReceiptProps {
 }
 
 export default function EntryReceipt({ ticket }: EntryReceiptProps) {
+    const { systemSettings } = usePage<SharedData>().props;
     const printer = usePrinterContext();
     const [showSuccess, setShowSuccess] = useState(false);
     const [qrCodeData, setQrCodeData] = useState<string>('');
@@ -119,7 +121,7 @@ export default function EntryReceipt({ ticket }: EntryReceiptProps) {
                     {/* Receipt Header */}
                     <div className="text-center p-6 border-b-2 border-dashed border-gray-300">
                         <h2 className="text-xl font-bold mb-1">PARKING ENTRY TICKET</h2>
-                        <p className="text-sm text-gray-600">Lanao del Norte</p>
+                        <p className="text-sm text-gray-600">{systemSettings.shortName}</p>
                         <p className="text-xs text-gray-500 mt-2">HOURLY RATE - Pay on Exit</p>
                     </div>
 

@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
-import { Form, Head, Link, router } from '@inertiajs/react';
+import { Form, Head, Link, router, usePage } from '@inertiajs/react';
+import { type SharedData } from '@/types';
 import { Car, Lock, Mail, AlertCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -20,6 +21,7 @@ export default function Login({
     status,
     canResetPassword,
 }: LoginProps) {
+    const { systemSettings } = usePage<SharedData>().props;
     const [globalError, setGlobalError] = useState<string | null>(null);
 
     // Listen for Inertia errors
@@ -52,7 +54,7 @@ export default function Login({
                                 <Car className="h-8 w-8 text-white" />
                             </div>
                             <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                                Lanao del Norte
+                                {systemSettings.shortName}
                             </span>
                         </Link>
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">

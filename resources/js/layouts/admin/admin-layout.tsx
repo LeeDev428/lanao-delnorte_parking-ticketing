@@ -20,7 +20,7 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ children, title }: AdminLayoutProps) {
-    const { auth, ziggy } = usePage<SharedData>().props;
+    const { auth, ziggy, systemSettings } = usePage<SharedData>().props;
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const currentUrl = window.location.pathname;
 
@@ -70,6 +70,13 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
             current: currentUrl === '/admin/users',
             show: isFullAdmin, // Only show for admin, not staff_admin
         },
+        {
+            name: 'System Settings',
+            href: '/admin/system-settings',
+            icon: Settings,
+            current: currentUrl === '/admin/system-settings',
+            show: isFullAdmin, // Only show for admin, not staff_admin
+        },
     ].filter(item => item.show); // Filter out hidden items
 
     const handleLogout = () => {
@@ -100,7 +107,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
                                 <Car className="h-5 w-5 text-white" />
                             </div>
                             <span className="text-lg font-bold text-gray-900 dark:text-white">
-                                Parking System
+                                {systemSettings.shortName}
                             </span>
                         </Link>
                         <button

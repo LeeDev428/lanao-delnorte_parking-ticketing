@@ -1,6 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { type SharedData } from '@/types';
 import { Check, Home, Bluetooth, Printer, Loader2 } from 'lucide-react';
 import { usePrinterContext } from '@/contexts/printer-context';
 import { useState, useEffect, useRef } from 'react';
@@ -31,6 +32,7 @@ interface ReceiptProps {
 }
 
 export default function Receipt({ payment }: ReceiptProps) {
+    const { systemSettings } = usePage<SharedData>().props;
     const amount = Number(payment.amount) || 0;
     const printer = usePrinterContext();
     const [showSuccess, setShowSuccess] = useState(false);
@@ -111,7 +113,7 @@ export default function Receipt({ payment }: ReceiptProps) {
                     {/* Receipt Header */}
                     <div className="text-center p-6 border-b-2 border-dashed border-gray-300">
                         <h2 className="text-xl font-bold mb-1">PARKING RECEIPT</h2>
-                        <p className="text-sm text-gray-600">Lanao del Norte</p>
+                        <p className="text-sm text-gray-600">{systemSettings.shortName}</p>
                         <p className="text-xs text-gray-500 mt-2">Thank you for parking with us</p>
                     </div>
 

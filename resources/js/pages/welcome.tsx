@@ -4,11 +4,11 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import { Car, Shield, Clock, QrCode, BarChart3, Users } from 'lucide-react';
 
 export default function Welcome() {
-    const { auth } = usePage<SharedData>().props;
+    const { auth, systemSettings } = usePage<SharedData>().props;
 
     return (
         <>
-            <Head title="Public Parking Ticketing System">
+            <Head title={systemSettings.name}>
                 <link rel="preconnect" href="https://fonts.bunny.net" />
                 <link
                     href="https://fonts.bunny.net/css?family=inter:400,500,600,700"
@@ -26,7 +26,7 @@ export default function Welcome() {
                                     <Car className="h-6 w-6 text-white" />
                                 </div>
                                 <span className="text-xl font-bold text-gray-900">
-                                    Lanao del Norte
+                                    {systemSettings.shortName}
                                 </span>
                             </div>
                             <div>
@@ -170,7 +170,7 @@ export default function Welcome() {
                                 <Car className="h-5 w-5 text-white" />
                             </div>
                             <span className="text-lg font-bold text-gray-900">
-                                Lanao del Norte Parking System
+                                {systemSettings.name}
                             </span>
                         </div>
                         <p className="text-gray-600">

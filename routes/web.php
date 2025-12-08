@@ -163,6 +163,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 return redirect()->back()->with('success', 'Rate deleted successfully!');
             })->name('rate-settings.destroy');
 
+            // System Settings
+            Route::get('system-settings', function () {
+                return Inertia::render('admin/system-settings', [
+                    'settings' => [
+                        'system_name' => \App\Models\SystemSetting::get('system_name', 'Auto Ticketing System'),
+                        'system_short_name' => \App\Models\SystemSetting::get('system_short_name', 'ATS'),
+                    ],
+                ]);
+            })->name('system-settings');
+
+            Route::post('system-settings', function (\Illuminate\Http\Request $request) {
+                $validated = $request->validate([
+                    'system_name' => 'required|string|max:255',
+                    'system_short_name' => 'required|string|max:50',
+                ]);
+
+                \App\Models\SystemSetting::set('system_name', $validated['system_name']);
+                \App\Models\SystemSetting::set('system_short_name', $validated['system_short_name']);
+
+                return redirect()->back()->with('success', 'Settings updated successfully!');
+            })->name('system-settings.store');
+
             // User Management
             Route::get('users', function () {
                 return Inertia::render('admin/users', [
