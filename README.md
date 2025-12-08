@@ -1,6 +1,6 @@
 # 🚗 Lanao del Norte Parking Ticketing System
 
-A comprehensive **mobile-first parking management system** built with Laravel, React, Inertia.js, and Capacitor for Android deployment. Features Bluetooth thermal printer integration (PT-210), real-time collections tracking, and multi-role access control.
+A comprehensive **PWA parking management system** built with Laravel, React, Inertia.js, and Capacitor for Android deployment. Features Bluetooth thermal printer integration (PT-210), real-time collections tracking, and multi-role access control.
 
 [![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?logo=laravel)](https://laravel.com)
 [![React](https://img.shields.io/badge/React-18.x-61DAFB?logo=react)](https://react.dev)
