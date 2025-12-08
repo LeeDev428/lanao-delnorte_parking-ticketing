@@ -322,6 +322,7 @@ export default function Tickets({ tickets, filters = {} }: TicketsProps) {
                                                     alt="Plate" 
                                                     className="h-12 w-auto rounded border border-gray-300 object-cover cursor-pointer hover:opacity-80 transition-opacity"
                                                     onClick={() => window.open(`/plates/${ticket.photo_path.replace('plates/', '')}`, '_blank')}
+                                                    onError={(e) => { console.error('Image load error:', ticket.photo_path); e.currentTarget.style.display = 'none'; }}
                                                 />
                                             ) : (
                                                 <span className="text-xs text-gray-400">No image</span>

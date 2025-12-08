@@ -99,10 +99,14 @@ export default function ActiveTickets({ tickets, parkingZones, filters }: Active
             const { available } = await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
             
             if (!available) {
-                // Install the module first
-                setScanError('Installing scanner module... Please wait and try again in a moment.');
-                await BarcodeScanner.installGoogleBarcodeScannerModule();
+                // Install the module first - this happens automatically
                 setScanning(false);
+                setScanError('Scanner module is being installed. Please wait a moment and try again.');
+                
+                // Install in background without blocking
+                BarcodeScanner.installGoogleBarcodeScannerModule().catch(err => {
+                    console.error('Module installation error:', err);
+                });
                 return;
             }
 
