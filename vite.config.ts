@@ -51,7 +51,22 @@ export default defineConfig({
             },
             workbox: {
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+                cleanupOutdatedCaches: true,
                 runtimeCaching: [
+                    {
+                        urlPattern: /^https:\/\/tacats\.live\/plates\/.*/,
+                        handler: 'NetworkFirst',
+                        options: {
+                            cacheName: 'plates-images-cache',
+                            expiration: {
+                                maxEntries: 50,
+                                maxAgeSeconds: 7 * 24 * 60 * 60 // 7 days
+                            },
+                            cacheableResponse: {
+                                statuses: [0, 200]
+                            }
+                        }
+                    },
                     {
                         urlPattern: /^https:\/\/.*\.(?:png|jpg|jpeg|svg|gif)$/,
                         handler: 'CacheFirst',
