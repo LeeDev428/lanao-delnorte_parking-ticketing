@@ -24,6 +24,7 @@ interface Ticket {
     entry_time: string;
     exit_time: string;
     status: 'paid' | 'cancelled';
+    photo_path: string | null;
     agent?: {
         name: string;
     };
@@ -304,6 +305,9 @@ export default function History({ tickets, parkingZones, filters }: HistoryProps
                                                 Plate Number
                                             </th>
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                                Plate Image
+                                            </th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                                                 Parking Zone
                                             </th>
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
@@ -362,6 +366,18 @@ export default function History({ tickets, parkingZones, filters }: HistoryProps
                                                         <span className="text-sm text-gray-900 font-medium">
                                                             {ticket.plate_number || 'N/A'}
                                                         </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        {ticket.photo_path ? (
+                                                            <img 
+                                                                src={`/storage/plates/${ticket.photo_path}`} 
+                                                                alt="Plate" 
+                                                                className="h-12 w-auto rounded border border-gray-300 object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                                                                onClick={() => window.open(`/storage/plates/${ticket.photo_path}`, '_blank')}
+                                                            />
+                                                        ) : (
+                                                            <span className="text-xs text-gray-400">No image</span>
+                                                        )}
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap">
                                                         <span className="text-sm text-gray-600">
