@@ -83,13 +83,9 @@ export default defineConfig({
         })
     ],
     server: {
-        host: '0.0.0.0', // Expose to network
+        host: 'localhost', // Use localhost for development
         port: 5173,
         strictPort: true,
-        hmr: {
-            host: '192.168.0.36', // Your network IP
-            protocol: 'ws',
-        },
         cors: {
             origin: '*', // Allow all origins for development
             credentials: true,
