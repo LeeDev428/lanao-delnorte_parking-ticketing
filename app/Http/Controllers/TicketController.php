@@ -8,6 +8,7 @@ use App\Models\RateSetting;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
 
 class TicketController extends Controller
 {
@@ -304,5 +305,122 @@ class TicketController extends Controller
                 'per_page' => $request->per_page,
             ],
         ]);
+    }
+
+    /**
+     * Create a PayMongo checkout session for GCash/Card payments
+     */
+    public function createPaymongoCheckout(Ticket $ticket)
+    {
+        // Calculate amount in centavos
+        if ($ticket->rate_type === 'hourly') {
+            $entryTime = \Carbon\Carbon::parse($ticket->entry_time);
+            $durationMinutes = $entryTime->diffInMinutes(now());
+            $hours = (int) ceil($durationMinutes / 60) ?: 1;
+            $amountCentavos = (int) ($hours * $ticket->price * 100);
+        } else {
+            $amountCentavos = (int) ($ticket->price * 100);
+        }
+
+        $response = Http::withBasicAuth(config('paymongo.secret_key'), '')
+            ->post('https://api.paymongo.com/v1/checkout_sessions', [
+                'data' => [
+                    'attributes' => [
+                        'send_email_receipt' => false,
+                        'show_description' => true,
+                        'show_line_items' => true,
+                        'line_items' => [[
+                            'currency' => 'PHP',
+                            'amount' => $amountCentavos,
+                            'description' => 'Parking Fee - ' . strtoupper(str_replace('_', ' ', $ticket->rate_type)),
+                            'name' => 'Parking Ticket ' . $ticket->ticket_id,
+                            'quantity' => 1,
+                        ]],
+                        'payment_method_types' => ['gcash', 'card'],
+                        'success_url' => url("/tickets/{$ticket->id}/paymongo/success"),
+                        'cancel_url' => url("/tickets/{$ticket->id}/payment"),
+                        'description' => 'Parking fee for plate: ' . $ticket->plate_number,
+                    ],
+                ],
+            ]);
+
+        if ($response->failed()) {
+            return back()->withErrors(['paymongo' => 'Failed to create payment session. Please try again.']);
+        }
+
+        $checkoutData = $response->json('data');
+        $checkoutUrl = $checkoutData['attributes']['checkout_url'];
+        $checkoutId = $checkoutData['id'];
+
+        $ticket->update(['paymongo_checkout_id' => $checkoutId]);
+
+        return Inertia::location($checkoutUrl);
+    }
+
+    /**
+     * Handle PayMongo checkout success callback
+     */
+    public function handlePaymongoSuccess(Ticket $ticket)
+    {
+        // Prevent duplicate processing
+        if ($ticket->status === 'paid') {
+            $payment = Payment::where('ticket_id', $ticket->id)->first();
+            if ($payment) {
+                return redirect()->route('tickets.receipt', $payment->id);
+            }
+        }
+
+        // Retrieve checkout session from PayMongo to get payment method used
+        $paymentMethod = 'card';
+        if ($ticket->paymongo_checkout_id) {
+            $response = Http::withBasicAuth(config('paymongo.secret_key'), '')
+                ->get('https://api.paymongo.com/v1/checkout_sessions/' . $ticket->paymongo_checkout_id);
+
+            if ($response->successful()) {
+                $session = $response->json('data');
+                $payments = $session['attributes']['payments'] ?? [];
+                if (!empty($payments)) {
+                    $type = $payments[0]['attributes']['source']['type'] ?? 'card';
+                    $paymentMethod = in_array($type, ['gcash', 'card']) ? $type : 'card';
+                }
+            }
+        }
+
+        // Calculate amount and set exit time (same logic as processPayment)
+        $rateSetting = RateSetting::where('rate_type', $ticket->rate_type)->first();
+
+        if ($ticket->rate_type === 'hourly') {
+            $entryTime = \Carbon\Carbon::parse($ticket->entry_time);
+            $exitTime = now();
+            $durationMinutes = $entryTime->diffInMinutes($exitTime);
+            $hours = (int) ceil($durationMinutes / 60) ?: 1;
+            $amount = $hours * $ticket->price;
+            $ticket->exit_time = $exitTime;
+            $ticket->duration_minutes = $durationMinutes;
+        } else {
+            $amount = $ticket->price;
+            $entryTime = \Carbon\Carbon::parse($ticket->entry_time);
+            if ($rateSetting && $rateSetting->duration_minutes > 0) {
+                $ticket->exit_time = $entryTime->copy()->addMinutes($rateSetting->duration_minutes);
+                $ticket->duration_minutes = $rateSetting->duration_minutes;
+            } else {
+                $ticket->exit_time = now();
+                $ticket->duration_minutes = 0;
+            }
+        }
+        $ticket->save();
+
+        $payment = Payment::create([
+            'receipt_number' => Payment::generateReceiptNumber(),
+            'ticket_id' => $ticket->id,
+            'amount' => $amount,
+            'payment_method' => $paymentMethod,
+            'paid_at' => now(),
+            'collected_by' => auth()->id(),
+        ]);
+
+        $ticket->update(['status' => 'paid']);
+
+        return redirect()->route('tickets.receipt', $payment->id);
     }
 }

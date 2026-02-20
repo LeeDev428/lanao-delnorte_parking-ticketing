@@ -76,6 +76,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/', [App\Http\Controllers\TicketController::class, 'store'])->name('store');
         Route::get('/{ticket}/payment', [App\Http\Controllers\TicketController::class, 'showPayment'])->name('payment');
         Route::post('/{ticket}/payment', [App\Http\Controllers\TicketController::class, 'processPayment'])->name('payment.process');
+        Route::post('/{ticket}/checkout', [App\Http\Controllers\TicketController::class, 'createPaymongoCheckout'])->name('paymongo.checkout');
+        Route::get('/{ticket}/paymongo/success', [App\Http\Controllers\TicketController::class, 'handlePaymongoSuccess'])->name('paymongo.success');
         Route::post('/{ticket}/deactivate', [App\Http\Controllers\TicketController::class, 'deactivate'])->name('deactivate');
         Route::get('/receipt/{payment}', [App\Http\Controllers\TicketController::class, 'showReceipt'])->name('receipt');
         Route::get('/entry-receipt/{ticket}', [App\Http\Controllers\TicketController::class, 'showEntryReceipt'])->name('entry-receipt');

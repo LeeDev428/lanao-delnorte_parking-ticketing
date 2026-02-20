@@ -51,7 +51,15 @@ export default function TicketPayment({ ticket }: PaymentProps) {
     }
 
     const handlePayment = () => {
-        setShowConfirmModal(true);
+        if (selectedMethod === 'cash') {
+            setShowConfirmModal(true);
+        } else {
+            // GCash / Card → PayMongo hosted checkout
+            setProcessing(true);
+            router.post(`/tickets/${ticket.id}/checkout`, {}, {
+                onFinish: () => setProcessing(false),
+            });
+        }
     };
 
     const confirmPayment = () => {
@@ -224,8 +232,20 @@ export default function TicketPayment({ ticket }: PaymentProps) {
                             disabled={processing}
                             className="w-full h-12 sm:h-14 text-base sm:text-lg font-semibold bg-green-600 hover:bg-green-700 text-white"
                         >
-                            {processing ? 'Processing...' : 'Pay Now'}
+                            {processing
+                                ? 'Redirecting...'
+                                : selectedMethod === 'cash'
+                                ? 'Pay Now'
+                                : `Pay via PayMongo (${selectedMethod === 'gcash' ? 'GCash' : 'Card'})`
+                            }
                         </Button>
+
+                        {/* PayMongo note for online methods */}
+                        {selectedMethod !== 'cash' && (
+                            <p className="text-xs text-center text-gray-500 dark:text-gray-400">
+                                You will be redirected to PayMongo's secure checkout page.
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>

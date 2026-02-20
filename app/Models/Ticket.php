@@ -21,6 +21,7 @@ class Ticket extends Model
         'status',
         'agent_id',
         'photo_path',
+        'paymongo_checkout_id',
     ];
 
     protected $casts = [
