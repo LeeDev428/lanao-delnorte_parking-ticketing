@@ -98,11 +98,6 @@ export default function NewTicket({ rateSettings, parkingZones }: NewTicketProps
                     </div>
                 </div>
 
-                {/* Temp QR Code Display */}
-                <div className="bg-white p-4 sm:p-6 flex justify-center">
-                    <img src="/qr.png" alt="QR Code" className="w-48 h-48 sm:w-64 sm:h-64 object-contain" />
-                </div>
-
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-b-2xl shadow-xl border border-gray-200 dark:border-gray-700">
                     <div className="p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
