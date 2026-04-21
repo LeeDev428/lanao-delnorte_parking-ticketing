@@ -128,7 +128,7 @@ export default function Login({
                                             <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">
                                                 Password
                                             </Label>
-                                            {canResetPassword && (
+                                            {/* {canResetPassword && (
                                                 <TextLink
                                                     href={request()}
                                                     className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
@@ -136,7 +136,7 @@ export default function Login({
                                                 >
                                                     Forgot password?
                                                 </TextLink>
-                                            )}
+                                            )} */}
                                         </div>
                                         <div className="relative">
                                             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
