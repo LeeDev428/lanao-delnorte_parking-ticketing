@@ -1,1 +1,0 @@
-import{c as p,j as l}from"./app-JM_PsSFY.js";function a(e){const o=p.c(6);let s,t;o[0]!==e?({alt:t,...s}=e,o[0]=e,o[1]=s,o[2]=t):(s=o[1],t=o[2]);const r=t===void 0?"Dakiri Logo":t;let i;return o[3]!==r||o[4]!==s?(i=l.jsx("img",{src:"/assets/img/dakiri-logo.png",alt:r,...s}),o[3]=r,o[4]=s,o[5]=i):i=o[5],i}export{a as A};
