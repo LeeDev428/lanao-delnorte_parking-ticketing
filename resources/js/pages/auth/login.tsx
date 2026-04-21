@@ -52,9 +52,10 @@ export default function Login({
                         <Link href="/" className="inline-flex items-center justify-center space-x-3 mb-6">
                             <img
                                 src="/assets/img/dakiri-logo1.png"
-                            
+                                alt="Dakiri IT Solutions"
                                 className="h-14 w-auto object-contain"
                             />
+                            <br />
                             <span className="text-2xl font-bold text-gray-900 dark:text-white">
                                 {systemSettings.shortName}
                             </span>
