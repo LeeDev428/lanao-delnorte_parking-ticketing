@@ -1,3 +1,4 @@
+import AppLogoIcon from '@/components/app-logo-icon';
 import { type SharedData } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';
 import {
@@ -8,7 +9,6 @@ import {
     LogOut,
     Menu,
     X,
-    Car,
     Settings,
     FileText,
 } from 'lucide-react';
@@ -102,9 +102,9 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
                 <div className="flex h-full flex-col">
                     {/* Logo */}
                     <div className="flex h-16 items-center justify-between px-6 border-b border-gray-200 dark:border-gray-700">
-                        <Link href="/" className="flex items-center space-x-3">
-                            <div className="bg-blue-600 p-2 rounded-lg">
-                                <Car className="h-5 w-5 text-white" />
+                        <Link href="/admin/dashboard" className="flex items-center space-x-3">
+                            <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-white p-1">
+                                <AppLogoIcon className="h-full w-full object-contain" />
                             </div>
                             <span className="text-lg font-bold text-gray-900 dark:text-white">
                                 {systemSettings.shortName}
