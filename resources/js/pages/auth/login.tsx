@@ -59,12 +59,12 @@ export default function Login({
                                 {systemSettings.shortName}
                             </span>
                         </Link>
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                        {/* <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                             Staff Login
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400">
                             Enter your credentials to access the parking system
-                        </p>
+                        </p> */}
                     </div>
 
                     {/* Login Card */}
