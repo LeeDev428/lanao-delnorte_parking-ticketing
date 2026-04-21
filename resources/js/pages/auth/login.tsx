@@ -56,9 +56,9 @@ export default function Login({
                                 className="h-14 w-auto object-contain"
                             />
                             <br />
-                            <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                            {/* <span className="text-2xl font-bold text-gray-900 dark:text-white">
                                 {systemSettings.shortName}
-                            </span>
+                            </span> */}
                         </Link>
                         {/* <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                             Staff Login
