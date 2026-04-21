@@ -10,7 +10,7 @@ Route::get('/sanctum/csrf-cookie', function () {
 })->name('csrf-cookie');
 
 Route::get('/', function () {
-    return Inertia::render('welcome');
+    return redirect()->route('login');
 })->name('home');
 
 // Route-based image serving for production (no symlink dependency)
