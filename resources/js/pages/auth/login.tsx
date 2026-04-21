@@ -51,7 +51,7 @@ export default function Login({
                     <div className="text-center mb-8">
                         <Link href="/" className="inline-flex items-center justify-center space-x-3 mb-6">
                             <img
-                                src="/assets/img/dakiri-logo.png"
+                                src="/assets/img/dakiri-logo1.png"
                                 alt="Dakiri IT Solutions"
                                 className="h-14 w-auto object-contain"
                             />
