@@ -23,7 +23,7 @@ export default defineConfig({
         }),
         VitePWA({
             registerType: 'autoUpdate',
-            includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'robots.txt'],
+            includeAssets: ['assets/img/dakiri-favicon.png', 'assets/img/dakiri-logo.png', 'robots.txt'],
             manifest: {
                 name: 'Lanao del Norte Parking Ticketing',
                 short_name: 'Parking App',
@@ -36,13 +36,13 @@ export default defineConfig({
                 start_url: '/',
                 icons: [
                     {
-                        src: '/icon-192.png',
+                        src: '/assets/img/dakiri-favicon.png',
                         sizes: '192x192',
                         type: 'image/png',
                         purpose: 'any maskable'
                     },
                     {
-                        src: '/icon-512.png',
+                        src: '/assets/img/dakiri-favicon.png',
                         sizes: '512x512',
                         type: 'image/png',
                         purpose: 'any maskable'
