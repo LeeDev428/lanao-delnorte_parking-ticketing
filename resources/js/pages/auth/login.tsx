@@ -9,7 +9,7 @@ import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { Form, Head, Link, router, usePage } from '@inertiajs/react';
 import { type SharedData } from '@/types';
-import { Car, Lock, Mail, AlertCircle } from 'lucide-react';
+import { Lock, Mail, AlertCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface LoginProps {
@@ -50,9 +50,11 @@ export default function Login({
                     {/* Header */}
                     <div className="text-center mb-8">
                         <Link href="/" className="inline-flex items-center justify-center space-x-3 mb-6">
-                            <div className="bg-blue-600 p-3 rounded-xl shadow-lg">
-                                <Car className="h-8 w-8 text-white" />
-                            </div>
+                            <img
+                                src="/assets/img/dakiri-logo.png"
+                                alt="Dakiri IT Solutions"
+                                className="h-14 w-auto object-contain"
+                            />
                             <span className="text-2xl font-bold text-gray-900 dark:text-white">
                                 {systemSettings.shortName}
                             </span>
