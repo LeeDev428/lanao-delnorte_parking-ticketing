@@ -91,6 +91,9 @@ jobs:
               exit 1
             fi
 
+            REPO_PUBLIC_DIR="$REPO_DIR/public"
+            REPO_BASENAME="$(basename "$REPO_DIR")"
+
             echo "Deploy user: $(whoami)"
             echo "Deploy host: $(hostname)"
             echo "Home dir: $HOME_DIR"
@@ -104,14 +107,6 @@ jobs:
               echo "Check SSH_HOST/SSH_USERNAME target or choose a writable DEPLOY_REPO_DIR."
               exit 1
             fi
-
-            if [ ! -d "$WEBROOT_DIR" ] || [ ! -w "$WEBROOT_DIR" ]; then
-              echo "WEBROOT_DIR is missing or not writable: $WEBROOT_DIR"
-              exit 1
-            fi
-
-            REPO_PUBLIC_DIR="$REPO_DIR/public"
-            REPO_BASENAME="$(basename "$REPO_DIR")"
 
             cd "$REPO_DIR"
 
@@ -157,9 +152,29 @@ jobs:
 
             chmod -R 775 storage bootstrap/cache
 
-            rsync -a --delete "$REPO_PUBLIC_DIR/" "$WEBROOT_DIR/"
-            sed -i "s|__DIR__.'/../vendor/autoload.php'|__DIR__.'/../$REPO_BASENAME/vendor/autoload.php'|" "$WEBROOT_DIR/index.php"
-            sed -i "s|__DIR__.'/../bootstrap/app.php'|__DIR__.'/../$REPO_BASENAME/bootstrap/app.php'|" "$WEBROOT_DIR/index.php"
+            if [ ! -d "$WEBROOT_DIR" ] || [ ! -w "$WEBROOT_DIR" ]; then
+              echo "WEBROOT_DIR is missing or not writable: $WEBROOT_DIR"
+              for CANDIDATE in "$HOME_DIR/public_html" "$REPO_PUBLIC_DIR"; do
+                if [ -d "$CANDIDATE" ] && [ -w "$CANDIDATE" ]; then
+                  WEBROOT_DIR="$CANDIDATE"
+                  echo "Using fallback WEBROOT_DIR=$WEBROOT_DIR"
+                  break
+                fi
+              done
+            fi
+
+            if [ ! -d "$WEBROOT_DIR" ] || [ ! -w "$WEBROOT_DIR" ]; then
+              echo "No writable webroot found. Checked: configured WEBROOT_DIR, $HOME_DIR/public_html, and $REPO_PUBLIC_DIR"
+              exit 1
+            fi
+
+            if [ "$WEBROOT_DIR" = "$REPO_PUBLIC_DIR" ]; then
+              echo "WEBROOT_DIR matches repo public directory; skipping rsync/index.php rewrite"
+            else
+              rsync -a --delete "$REPO_PUBLIC_DIR/" "$WEBROOT_DIR/"
+              sed -i "s|__DIR__.'/../vendor/autoload.php'|__DIR__.'/../$REPO_BASENAME/vendor/autoload.php'|" "$WEBROOT_DIR/index.php"
+              sed -i "s|__DIR__.'/../bootstrap/app.php'|__DIR__.'/../$REPO_BASENAME/bootstrap/app.php'|" "$WEBROOT_DIR/index.php"
+            fi
 
             # Hostinger shell may restrict exec()/symlink operations.
             php artisan storage:link || true
