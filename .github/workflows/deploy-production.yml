@@ -64,22 +64,18 @@ jobs:
       - name: Deploy to Hostinger via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SSH_HOST || vars.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME || vars.SSH_USERNAME }}
+          host: ${{ vars.SSH_HOST || secrets.SSH_HOST }}
+          username: ${{ vars.SSH_USERNAME || secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
-          port: ${{ secrets.SSH_PORT || vars.SSH_PORT }}
+          port: ${{ vars.SSH_PORT || secrets.SSH_PORT }}
           script_stop: true
           script: |
             set -euo pipefail
 
             REPO_URL="https://github.com/LeeDev428/lanao-delnorte_parking-ticketing.git"
-            REPO_DIR="${{ secrets.DEPLOY_REPO_DIR }}"
-            WEBROOT_DIR="${{ secrets.DEPLOY_WEBROOT_DIR }}"
-            APP_URL="${{ secrets.APP_URL }}"
-
-            [ -n "$REPO_DIR" ] || REPO_DIR="${{ vars.DEPLOY_REPO_DIR }}"
-            [ -n "$WEBROOT_DIR" ] || WEBROOT_DIR="${{ vars.DEPLOY_WEBROOT_DIR }}"
-            [ -n "$APP_URL" ] || APP_URL="${{ vars.APP_URL }}"
+            REPO_DIR="${{ vars.DEPLOY_REPO_DIR || secrets.DEPLOY_REPO_DIR }}"
+            WEBROOT_DIR="${{ vars.DEPLOY_WEBROOT_DIR || secrets.DEPLOY_WEBROOT_DIR }}"
+            APP_URL="${{ vars.APP_URL || secrets.APP_URL }}"
 
             # Safe defaults for the current production host.
             [ -n "$REPO_DIR" ] || REPO_DIR="/home/u255883361/domains/dkrsolutions.co/parking-ticketing"
@@ -91,15 +87,35 @@ jobs:
               exit 1
             fi
 
+            echo "Deploy user: $(whoami)"
+            echo "Deploy host: $(hostname)"
+            echo "Using REPO_DIR=$REPO_DIR"
+            echo "Using WEBROOT_DIR=$WEBROOT_DIR"
+
+            mkdir -p "$REPO_DIR"
+
+            if [ ! -w "$REPO_DIR" ]; then
+              echo "No write permission for REPO_DIR: $REPO_DIR"
+              echo "Check SSH_HOST/SSH_USERNAME target or choose a writable DEPLOY_REPO_DIR."
+              exit 1
+            fi
+
+            if [ ! -d "$WEBROOT_DIR" ] || [ ! -w "$WEBROOT_DIR" ]; then
+              echo "WEBROOT_DIR is missing or not writable: $WEBROOT_DIR"
+              exit 1
+            fi
+
             REPO_PUBLIC_DIR="$REPO_DIR/public"
             REPO_BASENAME="$(basename "$REPO_DIR")"
 
-            if [ ! -d "$REPO_DIR/.git" ]; then
-              rm -rf "$REPO_DIR"
-              git clone "$REPO_URL" "$REPO_DIR"
-            fi
-
             cd "$REPO_DIR"
+
+            if [ ! -d .git ]; then
+              git init
+              git remote add origin "$REPO_URL"
+            else
+              git remote set-url origin "$REPO_URL" || true
+            fi
 
             git fetch --all --prune
             git reset --hard origin/master
