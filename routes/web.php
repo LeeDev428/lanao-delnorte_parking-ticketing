@@ -28,7 +28,7 @@ Route::get('/plates/{path}', function ($path) {
     ]);
 })->where('path', '.*')->name('plates.serve');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     // Agent Dashboard
     Route::get('dashboard', function () {
         $today = now()->startOfDay();
