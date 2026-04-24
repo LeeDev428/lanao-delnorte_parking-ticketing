@@ -23,7 +23,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, dom, filter, gd, json, zip
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, pdo_sqlite, sqlite3, dom, filter, gd, json, zip
           coverage: none
 
       - name: Setup Node.js
