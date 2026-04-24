@@ -120,11 +120,14 @@ jobs:
             git fetch --all --prune
             git reset --hard origin/master
 
-            composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
+            composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction --no-scripts
 
             if command -v npm >/dev/null 2>&1; then
-              npm ci
-              npm run build
+              if npm ci && npm run build; then
+                echo "npm build completed"
+              else
+                echo "npm build failed; using committed public/build artifacts"
+              fi
             else
               echo "npm is not available on server; using committed public/build artifacts"
             fi
@@ -139,6 +142,8 @@ jobs:
             else
               echo "APP_URL=$APP_URL" >> .env
             fi
+
+            php artisan package:discover --ansi
 
             php artisan migrate --force
 
