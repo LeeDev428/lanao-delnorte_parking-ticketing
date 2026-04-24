@@ -76,10 +76,14 @@ jobs:
             REPO_DIR="${{ vars.DEPLOY_REPO_DIR || secrets.DEPLOY_REPO_DIR }}"
             WEBROOT_DIR="${{ vars.DEPLOY_WEBROOT_DIR || secrets.DEPLOY_WEBROOT_DIR }}"
             APP_URL="${{ vars.APP_URL || secrets.APP_URL }}"
+            DEPLOY_DOMAIN="${{ vars.DEPLOY_DOMAIN || secrets.DEPLOY_DOMAIN }}"
+
+            HOME_DIR="$(cd ~ && pwd)"
+            [ -n "$DEPLOY_DOMAIN" ] || DEPLOY_DOMAIN="dkrsolutions.co"
 
             # Safe defaults for the current production host.
-            [ -n "$REPO_DIR" ] || REPO_DIR="/home/u255883361/domains/dkrsolutions.co/parking-ticketing"
-            [ -n "$WEBROOT_DIR" ] || WEBROOT_DIR="/home/u255883361/domains/dkrsolutions.co/public_html"
+            [ -n "$REPO_DIR" ] || REPO_DIR="$HOME_DIR/domains/$DEPLOY_DOMAIN/parking-ticketing"
+            [ -n "$WEBROOT_DIR" ] || WEBROOT_DIR="$HOME_DIR/domains/$DEPLOY_DOMAIN/public_html"
             [ -n "$APP_URL" ] || APP_URL="https://dkrsolutions.co"
 
             if [ -z "$REPO_DIR" ] || [ -z "$WEBROOT_DIR" ]; then
@@ -89,6 +93,7 @@ jobs:
 
             echo "Deploy user: $(whoami)"
             echo "Deploy host: $(hostname)"
+            echo "Home dir: $HOME_DIR"
             echo "Using REPO_DIR=$REPO_DIR"
             echo "Using WEBROOT_DIR=$WEBROOT_DIR"
 
