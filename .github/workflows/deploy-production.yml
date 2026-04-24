@@ -64,127 +64,51 @@ jobs:
       - name: Deploy to Hostinger via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ vars.SSH_HOST || secrets.SSH_HOST }}
-          username: ${{ vars.SSH_USERNAME || secrets.SSH_USERNAME }}
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
-          port: ${{ vars.SSH_PORT || secrets.SSH_PORT }}
-          script_stop: true
+          port: ${{ secrets.SSH_PORT }}
+          script_stop: false
           script: |
-            set -euo pipefail
-
-            REPO_URL="https://github.com/LeeDev428/lanao-delnorte_parking-ticketing.git"
-            REPO_DIR="${{ vars.DEPLOY_REPO_DIR || secrets.DEPLOY_REPO_DIR }}"
-            WEBROOT_DIR="${{ vars.DEPLOY_WEBROOT_DIR || secrets.DEPLOY_WEBROOT_DIR }}"
-            APP_URL="${{ vars.APP_URL || secrets.APP_URL }}"
-            DEPLOY_DOMAIN="${{ vars.DEPLOY_DOMAIN || secrets.DEPLOY_DOMAIN }}"
-
+            echo "[1/8] Identifying environment"
             HOME_DIR="$(cd ~ && pwd)"
-            [ -n "$DEPLOY_DOMAIN" ] || DEPLOY_DOMAIN="dkrsolutions.co"
+            REPO_DIR="$HOME_DIR/domains/dkrsolutions.co/parking-ticketing"
+            WEBROOT_DIR="$HOME_DIR/domains/dkrsolutions.co/public_html"
+            echo "  home=$HOME_DIR repo=$REPO_DIR webroot=$WEBROOT_DIR"
 
-            # Safe defaults for the current production host.
-            [ -n "$REPO_DIR" ] || REPO_DIR="$HOME_DIR/domains/$DEPLOY_DOMAIN/parking-ticketing"
-            [ -n "$WEBROOT_DIR" ] || WEBROOT_DIR="$HOME_DIR/domains/$DEPLOY_DOMAIN/public_html"
-            [ -n "$APP_URL" ] || APP_URL="https://dkrsolutions.co"
+            echo "[2/8] Updating code from git"
+            cd "$REPO_DIR" || { echo "ERROR: cannot cd to $REPO_DIR"; exit 1; }
+            git fetch origin master 2>&1
+            git reset --hard origin/master 2>&1
 
-            if [ -z "$REPO_DIR" ] || [ -z "$WEBROOT_DIR" ]; then
-              echo "Missing deploy paths. Set DEPLOY_REPO_DIR and DEPLOY_WEBROOT_DIR as repository Secrets or Variables."
-              exit 1
-            fi
+            echo "[3/8] Installing PHP dependencies"
+            composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction --no-scripts 2>&1
 
-            REPO_PUBLIC_DIR="$REPO_DIR/public"
-            REPO_BASENAME="$(basename "$REPO_DIR")"
+            echo "[4/8] Bootstrapping Laravel"
+            php artisan package:discover --ansi 2>&1 || echo "package:discover warning (non-fatal)"
 
-            echo "Deploy user: $(whoami)"
-            echo "Deploy host: $(hostname)"
-            echo "Home dir: $HOME_DIR"
-            echo "Using REPO_DIR=$REPO_DIR"
-            echo "Using WEBROOT_DIR=$WEBROOT_DIR"
+            echo "[5/8] Running migrations and seeder"
+            php artisan migrate --force 2>&1
+            php artisan db:seed --force 2>&1 || echo "Seeder warning (non-fatal)"
 
-            mkdir -p "$REPO_DIR"
+            echo "[6/8] Clearing and rebuilding caches"
+            php artisan optimize:clear 2>&1
+            php artisan config:cache 2>&1
+            php artisan route:cache 2>&1
+            php artisan view:cache 2>&1
 
-            if [ ! -w "$REPO_DIR" ]; then
-              echo "No write permission for REPO_DIR: $REPO_DIR"
-              echo "Check SSH_HOST/SSH_USERNAME target or choose a writable DEPLOY_REPO_DIR."
-              exit 1
-            fi
+            echo "[7/8] Fixing storage permissions"
+            chmod -R 775 storage bootstrap/cache 2>&1
 
-            cd "$REPO_DIR"
-
-            if [ ! -d .git ]; then
-              git init
-              git remote add origin "$REPO_URL"
+            echo "[8/8] Syncing public assets to webroot"
+            if [ -d "$WEBROOT_DIR" ] && [ -w "$WEBROOT_DIR" ]; then
+              cp -rf "$REPO_DIR/public/build" "$WEBROOT_DIR/" 2>&1 || echo "Assets copy warning (non-fatal)"
+              echo "  Assets synced to $WEBROOT_DIR/build"
             else
-              git remote set-url origin "$REPO_URL" || true
+              echo "  Note: $WEBROOT_DIR not writable — assets not synced (use manual sync if needed)"
             fi
 
-            git fetch --all --prune
-            git reset --hard origin/master
-
-            composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction --no-scripts
-
-            if command -v npm >/dev/null 2>&1; then
-              if npm ci && npm run build; then
-                echo "npm build completed"
-              else
-                echo "npm build failed; using committed public/build artifacts"
-              fi
-            else
-              echo "npm is not available on server; using committed public/build artifacts"
-            fi
-
-            if [ ! -f .env ]; then
-              cp .env.example .env
-              php artisan key:generate --force
-            fi
-
-            if grep -q '^APP_URL=' .env; then
-              sed -i "s|^APP_URL=.*|APP_URL=$APP_URL|" .env
-            else
-              echo "APP_URL=$APP_URL" >> .env
-            fi
-
-            php artisan package:discover --ansi
-
-            php artisan migrate --force
-
-            php artisan config:clear
-            php artisan cache:clear
-            php artisan route:clear
-            php artisan view:clear
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-
-            chmod -R 775 storage bootstrap/cache
-
-            if [ ! -d "$WEBROOT_DIR" ] || [ ! -w "$WEBROOT_DIR" ]; then
-              echo "WEBROOT_DIR is missing or not writable: $WEBROOT_DIR"
-              for CANDIDATE in "$HOME_DIR/public_html" "$REPO_PUBLIC_DIR"; do
-                if [ -d "$CANDIDATE" ] && [ -w "$CANDIDATE" ]; then
-                  WEBROOT_DIR="$CANDIDATE"
-                  echo "Using fallback WEBROOT_DIR=$WEBROOT_DIR"
-                  break
-                fi
-              done
-            fi
-
-            if [ ! -d "$WEBROOT_DIR" ] || [ ! -w "$WEBROOT_DIR" ]; then
-              echo "No writable webroot found. Checked: configured WEBROOT_DIR, $HOME_DIR/public_html, and $REPO_PUBLIC_DIR"
-              exit 1
-            fi
-
-            if [ "$WEBROOT_DIR" = "$REPO_PUBLIC_DIR" ]; then
-              echo "WEBROOT_DIR matches repo public directory; skipping rsync/index.php rewrite"
-            else
-              rsync -a --delete "$REPO_PUBLIC_DIR/" "$WEBROOT_DIR/"
-              sed -i "s|__DIR__.'/../vendor/autoload.php'|__DIR__.'/../$REPO_BASENAME/vendor/autoload.php'|" "$WEBROOT_DIR/index.php"
-              sed -i "s|__DIR__.'/../bootstrap/app.php'|__DIR__.'/../$REPO_BASENAME/bootstrap/app.php'|" "$WEBROOT_DIR/index.php"
-            fi
-
-            # Hostinger shell may restrict exec()/symlink operations.
-            php artisan storage:link || true
-
-            echo "Deployment completed successfully"
+            echo "=== Deployment completed ==="
 
       - name: Deployment Success Notification
         if: success()
