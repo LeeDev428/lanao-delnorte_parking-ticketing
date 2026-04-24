@@ -14,8 +14,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create default admin user
-        User::firstOrCreate(
+        // Create/update default admin user (updateOrCreate ensures email_verified_at is always set)
+        User::updateOrCreate(
             ['email' => 'admin@gmail.com'],
             [
                 'name' => 'Admin User',
@@ -26,8 +26,8 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Create default agent user
-        User::firstOrCreate(
+        // Create/update default agent user
+        User::updateOrCreate(
             ['email' => 'agent@gmail.com'],
             [
                 'name' => 'Agent User',
@@ -38,8 +38,8 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Create default staff admin user
-        User::firstOrCreate(
+        // Create/update default staff admin user
+        User::updateOrCreate(
             ['email' => 'staff@gmail.com'],
             [
                 'name' => 'Staff Admin User',
