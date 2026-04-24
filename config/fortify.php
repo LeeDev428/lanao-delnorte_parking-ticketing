@@ -146,7 +146,7 @@ return [
     'features' => [
         // Features::registration(), // Disabled - Admin handles user registration
         Features::resetPasswords(),
-        Features::emailVerification(),
+        // Features::emailVerification(), // Disabled - internal staff app, no email verification needed
         Features::twoFactorAuthentication([
             'confirm' => true,
             'confirmPassword' => true,
