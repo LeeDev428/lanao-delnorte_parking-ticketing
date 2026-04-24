@@ -72,9 +72,15 @@ jobs:
           script: |
             set -euo pipefail
 
-            REPO_DIR="/home/u314333613/domains/tacats.live/tacats/lanao-delnorte_parking-ticketing"
-            WEBROOT_DIR="/home/u314333613/domains/tacats.live/public_html"
+            REPO_URL="https://github.com/LeeDev428/lanao-delnorte_parking-ticketing.git"
+            REPO_DIR="${{ secrets.DEPLOY_REPO_DIR }}"
+            WEBROOT_DIR="${{ secrets.DEPLOY_WEBROOT_DIR }}"
             REPO_PUBLIC_DIR="$REPO_DIR/public"
+
+            if [ ! -d "$REPO_DIR/.git" ]; then
+              rm -rf "$REPO_DIR"
+              git clone "$REPO_URL" "$REPO_DIR"
+            fi
 
             cd "$REPO_DIR"
 
@@ -82,8 +88,20 @@ jobs:
             git reset --hard origin/master
 
             composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
-            npm ci
-            npm run build
+
+            if command -v npm >/dev/null 2>&1; then
+              npm ci
+              npm run build
+            else
+              echo "npm is not available on server; using committed public/build artifacts"
+            fi
+
+            if [ ! -f .env ]; then
+              cp .env.example .env
+              php artisan key:generate --force
+            fi
+
+            sed -i 's|^APP_URL=.*|APP_URL=${{ secrets.APP_URL }}|' .env
 
             php artisan migrate --force
 
@@ -97,16 +115,12 @@ jobs:
 
             chmod -R 775 storage bootstrap/cache
 
-            # Keep live webroot bound to repo-built assets to avoid stale hashed files.
-            if [ ! -L "$WEBROOT_DIR/build" ] || [ "$(readlink "$WEBROOT_DIR/build")" != "$REPO_PUBLIC_DIR/build" ]; then
-              rm -rf "$WEBROOT_DIR/build"
-              ln -s "$REPO_PUBLIC_DIR/build" "$WEBROOT_DIR/build"
-            fi
+            rsync -a --delete "$REPO_PUBLIC_DIR/" "$WEBROOT_DIR/"
+            sed -i "s|__DIR__.'/../vendor/autoload.php'|__DIR__.'/../parking-ticketing/vendor/autoload.php'|" "$WEBROOT_DIR/index.php"
+            sed -i "s|__DIR__.'/../bootstrap/app.php'|__DIR__.'/../parking-ticketing/bootstrap/app.php'|" "$WEBROOT_DIR/index.php"
 
-            if [ ! -L "$WEBROOT_DIR/assets" ] || [ "$(readlink "$WEBROOT_DIR/assets")" != "$REPO_PUBLIC_DIR/assets" ]; then
-              rm -rf "$WEBROOT_DIR/assets"
-              ln -s "$REPO_PUBLIC_DIR/assets" "$WEBROOT_DIR/assets"
-            fi
+            # Hostinger shell may restrict exec()/symlink operations.
+            php artisan storage:link || true
 
             echo "Deployment completed successfully"
 
