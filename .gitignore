@@ -11,6 +11,7 @@
 /vendor
 .DS_Store
 .env
+.env.testing
 TODO.md
 .env.backup
 .env.production
